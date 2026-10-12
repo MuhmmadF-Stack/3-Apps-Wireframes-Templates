@@ -12,8 +12,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}
-html{--page:oklch(0.92 0.01 80);--bg:oklch(0.975 0.008 85);--surface:oklch(0.995 0.004 85);--ink:oklch(0.23 0.012 60);--muted:oklch(0.48 0.012 60);--line:oklch(0.89 0.01 80);--chip:oklch(0.945 0.01 80);--accent:oklch(0.46 0.08 195);--accent-soft:oklch(0.94 0.025 195);--on-accent:oklch(0.99 0.005 85);--warn:oklch(0.53 0.15 35);--good:oklch(0.48 0.1 155)}
-html[data-theme="dark"]{--page:oklch(0.12 0.006 60);--bg:oklch(0.17 0.008 60);--surface:oklch(0.215 0.009 60);--ink:oklch(0.95 0.008 85);--muted:oklch(0.73 0.01 70);--line:oklch(0.32 0.01 60);--chip:oklch(0.26 0.01 60);--accent:oklch(0.76 0.08 190);--accent-soft:oklch(0.3 0.04 195);--on-accent:oklch(0.17 0.008 60);--warn:oklch(0.72 0.14 35);--good:oklch(0.75 0.11 155)}
+html{--page:oklch(0.92 0.01 80);--bg:oklch(0.975 0.008 85);--surface:oklch(0.995 0.004 85);--ink:oklch(0.23 0.012 60);--muted:oklch(0.48 0.012 60);--line:oklch(0.89 0.01 80);--chip:oklch(0.945 0.01 80);--accent:oklch(0.46 0.08 195);--accent-soft:oklch(0.94 0.025 195);--on-accent:oklch(0.99 0.005 85);--warn:oklch(0.53 0.15 35);--good:oklch(0.48 0.1 155);--check:oklch(0.55 0.13 65);--check-soft:oklch(0.94 0.05 80)}
+html[data-theme="dark"]{--page:oklch(0.12 0.006 60);--bg:oklch(0.17 0.008 60);--surface:oklch(0.215 0.009 60);--ink:oklch(0.95 0.008 85);--muted:oklch(0.73 0.01 70);--line:oklch(0.32 0.01 60);--chip:oklch(0.26 0.01 60);--accent:oklch(0.76 0.08 190);--accent-soft:oklch(0.3 0.04 195);--on-accent:oklch(0.17 0.008 60);--warn:oklch(0.72 0.14 35);--good:oklch(0.75 0.11 155);--check:oklch(0.8 0.12 75);--check-soft:oklch(0.33 0.05 70)}
 body{margin:0;background:var(--page);font-family:'IBM Plex Sans',system-ui,sans-serif;color:var(--ink);transition:background .3s}
 button,input,select{font:inherit;color:inherit}
 input::placeholder{color:var(--muted)}
@@ -135,21 +135,31 @@ a{color:var(--accent)}a:hover{color:var(--ink)}
 <div style="position:absolute;inset:0;display:flex;flex-direction:column">
 <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 22px 0"><span style="font:500 24px/1 Newsreader,serif">Add expense</span><button onClick="{{ cancelAdd }}" style="border:0;background:none;color:var(--accent);font-weight:600;cursor:pointer">Cancel</button></div>
 <div class="pk-scroll" style="flex:1;overflow-y:auto;padding:0 22px 20px;scrollbar-width:none">
-<div style="margin-top:20px;font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.1em;color:var(--muted)">AMOUNT · USD</div>
+<div style="margin-top:16px;border:1px solid {{ ai.border }};border-radius:14px;background:var(--surface);padding:12px 12px 12px 14px">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.1em;color:var(--accent)">✦ DESCRIBE IT · AI</span><span style="font-size:11px;color:var(--muted)">English · Roman Urdu</span></div>
+<div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+<input value="{{ ai.text }}" onChange="{{ onAiText }}" onKeyDown="{{ onAiKey }}" maxlength="300" aria-label="Describe your expense in your own words" placeholder="e.g. kal dhabe pe chai paratha 4.50" style="flex:1;min-width:0;height:44px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:0 12px;outline:none;font-size:15px;color:var(--ink)">
+<button onClick="{{ aiFill }}" disabled="{{ ai.busy }}" style="height:44px;flex:none;border:0;border-radius:10px;background:var(--ink);color:var(--bg);padding:0 14px;font-weight:600;font-size:14px;cursor:{{ ai.cursor }};opacity:{{ ai.opacity }}">{{ ai.btn }}</button>
+</div>
+<sc-if value="{{ ai.hasError }}"><div role="alert" style="margin-top:8px;font-size:13px;line-height:1.4;color:var(--warn)">{{ ai.error }}</div></sc-if>
+<sc-if value="{{ ai.done }}"><div role="status" style="margin-top:8px;display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:13px;line-height:1.4"><span style="color:{{ ai.msgColor }}">{{ ai.msg }}</span><button onClick="{{ aiUndo }}" style="border:0;background:none;color:var(--accent);font-weight:600;cursor:pointer;padding:0;flex:none">Undo</button></div></sc-if>
+<sc-if value="{{ ai.idle }}"><div style="margin-top:8px;font-size:12px;line-height:1.4;color:var(--muted)">Type it like you’d text a friend. You can still edit everything below.</div></sc-if>
+</div>
+<div style="margin-top:20px;font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.1em;color:var(--muted)">AMOUNT · USD<sc-if value="{{ fm.t.amount.on }}"><span style="margin-left:6px;display:inline-block;font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.08em;padding:3px 7px;border-radius:999px;background:{{ fm.t.amount.bg }};color:{{ fm.t.amount.fg }};vertical-align:1px">{{ fm.t.amount.text }}</span></sc-if></div>
 <div style="display:flex;align-items:baseline;gap:2px;margin-top:6px;border-bottom:1.5px solid {{ fm.amtBorder }};padding-bottom:6px">
 <span style="font:400 48px/1 Newsreader,serif;color:var(--muted)">$</span>
 <input value="{{ fm.amount }}" onChange="{{ onAmount }}" inputmode="decimal" placeholder="0.00" style="flex:1;min-width:0;border:0;background:none;outline:none;font:500 52px/1.1 Newsreader,serif;letter-spacing:-.02em">
 </div>
 <sc-if value="{{ fm.amtErr }}"><div style="margin-top:6px;font-size:13px;color:var(--warn)">Enter an amount greater than $0.</div></sc-if>
-<label style="margin-top:18px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)">Merchant<input value="{{ fm.merchant }}" onChange="{{ onMerchant }}" placeholder="Where did you spend?" style="height:46px;border:1px solid {{ fm.merBorder }};border-radius:10px;background:var(--surface);padding:0 14px;outline:none;font-size:15px;color:var(--ink)"></label>
+<label style="margin-top:18px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)"><span>Merchant<sc-if value="{{ fm.t.merchant.on }}"><span style="margin-left:6px;display:inline-block;font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.08em;padding:3px 7px;border-radius:999px;background:{{ fm.t.merchant.bg }};color:{{ fm.t.merchant.fg }};vertical-align:1px">{{ fm.t.merchant.text }}</span></sc-if></span><input value="{{ fm.merchant }}" onChange="{{ onMerchant }}" placeholder="Where did you spend?" style="height:46px;border:1px solid {{ fm.merBorder }};border-radius:10px;background:var(--surface);padding:0 14px;outline:none;font-size:15px;color:var(--ink)"></label>
 <sc-if value="{{ fm.merErr }}"><div style="margin-top:6px;font-size:13px;color:var(--warn)">Add a merchant name.</div></sc-if>
-<div style="margin-top:16px;font-size:13px;color:var(--muted)">Category</div>
+<div style="margin-top:16px;font-size:13px;color:var(--muted)">Category<sc-if value="{{ fm.t.category.on }}"><span style="margin-left:6px;display:inline-block;font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.08em;padding:3px 7px;border-radius:999px;background:{{ fm.t.category.bg }};color:{{ fm.t.category.fg }};vertical-align:1px">{{ fm.t.category.text }}</span></sc-if></div>
 <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">
 <sc-for list="{{ fm.cats }}" as="c" hint-placeholder-count="8"><button onClick="{{ c.onClick }}" style="border:1px solid {{ c.border }};background:{{ c.bg }};color:{{ c.fg }};border-radius:999px;padding:7px 12px;font-size:13px;font-weight:500;cursor:pointer">{{ c.name }}</button></sc-for>
 </div>
 <div style="margin-top:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px">
-<label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)">Date<input type="date" value="{{ fm.date }}" onChange="{{ onDate }}" min="2026-09-01" max="2026-10-06" style="height:46px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 10px;outline:none;font-size:14px;color:var(--ink)"></label>
-<label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)">Paid from<select value="{{ fm.account }}" onChange="{{ onAccount }}" style="height:46px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 10px;outline:none;font-size:14px;color:var(--ink)"><option>Checking</option><option>Credit card</option><option>Savings</option></select></label>
+<label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)"><span>Date<sc-if value="{{ fm.t.date.on }}"><span style="margin-left:6px;display:inline-block;font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.08em;padding:3px 7px;border-radius:999px;background:{{ fm.t.date.bg }};color:{{ fm.t.date.fg }};vertical-align:1px">{{ fm.t.date.text }}</span></sc-if></span><input type="date" value="{{ fm.date }}" onChange="{{ onDate }}" min="2026-09-01" max="2026-10-06" style="height:46px;border:1px solid {{ fm.dateBorder }};border-radius:10px;background:var(--surface);padding:0 10px;outline:none;font-size:14px;color:var(--ink)"></label>
+<label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)"><span>Paid from<sc-if value="{{ fm.t.account.on }}"><span style="margin-left:6px;display:inline-block;font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.08em;padding:3px 7px;border-radius:999px;background:{{ fm.t.account.bg }};color:{{ fm.t.account.fg }};vertical-align:1px">{{ fm.t.account.text }}</span></sc-if></span><select value="{{ fm.account }}" onChange="{{ onAccount }}" style="height:46px;border:1px solid {{ fm.accBorder }};border-radius:10px;background:var(--surface);padding:0 10px;outline:none;font-size:14px;color:var(--ink)"><option>Checking</option><option>Credit card</option><option>Savings</option></select></label>
 </div>
 <label style="margin-top:16px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)">Note (optional)<input value="{{ fm.note }}" onChange="{{ onNote }}" placeholder="Add a note" style="height:46px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 14px;outline:none;font-size:15px;color:var(--ink)"></label>
 <div style="margin-top:18px;border-radius:14px;background:var(--accent-soft);padding:14px 16px">
@@ -321,9 +331,38 @@ class Component extends DCLogic {
     t('s11','Cinema Paradiso','Entertainment',-145.00,'2026-09-26','Credit card'),
     t('s12','Paper & Bloom','Other',-60.00,'2026-09-22')
   ]; }
-  blankForm(){ return {amount:'',merchant:'',cat:'Groceries',date:'2026-10-06',account:'Checking',note:'',tried:false}; }
-  state = { screen:'overview',tab:'overview',prev:'overview',month:'2026-10',tx:this.seed(),limits:Object.fromEntries(this.CATS),form:this.blankForm(),catName:null,catMode:'view',saved:null,query:'',kind:'All',sheet:null,txId:null,confirmDel:false,dark:false,toast:'',nextRef:1048 };
-  componentDidMount(){ this.applyTheme(); } componentDidUpdate(){ this.applyTheme(); } componentWillUnmount(){ clearTimeout(this.tt); }
+  ACCOUNTS = ['Checking','Credit card','Savings'];
+  TODAY = '2026-10-06';
+  AI_URL = '/api/parse-expense';
+  blankForm(){ return {amount:'',merchant:'',cat:'Groceries',date:'2026-10-06',account:'Checking',note:'',tried:false,aiFields:[],aiUnsure:[]}; }
+  blankAi(){ return {text:'',busy:false,error:'',done:false}; }
+  // A field the user edits by hand is no longer "filled by AI".
+  untag(form,k){ return {aiFields:(form.aiFields||[]).filter(x=>x!==k),aiUnsure:(form.aiUnsure||[]).filter(x=>x!==k)}; }
+  // AI feature: send the sentence to our own server (which holds the API key), then fill the form.
+  async aiFill(){
+    const text=this.state.ai.text.trim();
+    if(this.state.ai.busy) return;
+    if(!text){ this.setState(x=>({ai:{...x.ai,error:'Type a short description first, e.g. “uber to uni 6”.',done:false}})); return; }
+    this.setState(x=>({ai:{...x.ai,busy:true,error:'',done:false}}));
+    const ctrl=new AbortController(), timer=setTimeout(()=>ctrl.abort(),20000);
+    try{
+      const r=await fetch(this.AI_URL,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,
+        body:JSON.stringify({text,today:this.TODAY,minDate:'2026-09-01',categories:this.CATS.map(c=>c[0]),accounts:this.ACCOUNTS})});
+      let data=null; try{ data=await r.json(); }catch(e){}
+      if(!r.ok||!data) throw new Error(data&&data.error?data.error:(r.status===404||r.status===405?'AI isn’t available on this host. Open the Vercel version, or run node server.mjs locally.':'Something went wrong. Try again.'));
+      if(!this.alive||this.state.screen!=='add') return;
+      const prev=this.state.form;
+      const next={...prev,amount:data.amount>0?Number(data.amount).toFixed(2):prev.amount,merchant:data.merchant||prev.merchant,cat:data.category,date:data.date,account:data.account,note:data.note||prev.note,tried:false};
+      const unsure=data.unsure||[];
+      const changed=[['amount','amount'],['merchant','merchant'],['category','cat'],['date','date'],['account','account']].filter(([k,f])=>next[f]!==prev[f]||unsure.includes(k)).map(([k])=>k);
+      this.setState(x=>({form:{...next,aiFields:changed,aiUnsure:unsure},aiPrev:prev,ai:{...x.ai,busy:false,done:true,error:''}}));
+    }catch(e){
+      const msg=e.name==='AbortError'?'The AI took too long. Try again.':e instanceof TypeError?'Can’t reach the AI. Check your internet, or run the app with node server.mjs / on Vercel.':e.message;
+      if(this.alive) this.setState(x=>({ai:{...x.ai,busy:false,error:msg,done:false}}));
+    }finally{ clearTimeout(timer); }
+  }
+  state = { screen:'overview',tab:'overview',prev:'overview',month:'2026-10',tx:this.seed(),limits:Object.fromEntries(this.CATS),form:this.blankForm(),ai:this.blankAi(),aiPrev:null,catName:null,catMode:'view',saved:null,query:'',kind:'All',sheet:null,txId:null,confirmDel:false,dark:false,toast:'',nextRef:1048 };
+  componentDidMount(){ this.alive=true; this.applyTheme(); } componentDidUpdate(){ this.applyTheme(); } componentWillUnmount(){ this.alive=false; clearTimeout(this.tt); }
   applyTheme(){ document.documentElement.dataset.theme=this.state.dark?'dark':'light'; }
   m(n){ return n.toLocaleString('en-US',{style:'currency',currency:'USD'}); }
   m0(n){ return Number.isInteger(n)?'$'+n.toLocaleString('en-US'):this.m(n); }
@@ -359,12 +398,18 @@ class Component extends DCLogic {
     // form
     const f=s.form, a=this.amt(); const fMonth=f.date.slice(0,7); const fmt=this.monthTx(fMonth);
     const catLeftNow=s.limits[f.cat]-this.spentBy(fmt,f.cat), after=catLeftNow-a;
-    const fm={...f,amtErr:f.tried&&a<=0,merErr:f.tried&&!f.merchant.trim(),amtBorder:f.tried&&a<=0?'var(--warn)':'var(--ink)',merBorder:f.tried&&!f.merchant.trim()?'var(--warn)':'var(--line)',
-      cats:this.CATS.map(([n])=>{ const on=f.cat===n; return {name:n,bg:on?'var(--ink)':'var(--surface)',fg:on?'var(--bg)':'var(--ink)',border:on?'var(--ink)':'var(--line)',onClick:()=>this.setState(x=>({form:{...x.form,cat:n}}))}; }),
+    const un=k=>(f.aiUnsure||[]).includes(k), byAi=k=>(f.aiFields||[]).includes(k)||un(k);
+    const t={}; ['amount','merchant','category','date','account'].forEach(k=>{ t[k]={on:byAi(k),text:un(k)?'AI · CHECK':'AI',bg:un(k)?'var(--check-soft)':'var(--accent-soft)',fg:un(k)?'var(--check)':'var(--accent)'}; });
+    const fm={...f,t,amtErr:f.tried&&a<=0,merErr:f.tried&&!f.merchant.trim(),amtBorder:f.tried&&a<=0?'var(--warn)':un('amount')?'var(--check)':'var(--ink)',merBorder:f.tried&&!f.merchant.trim()?'var(--warn)':un('merchant')?'var(--check)':'var(--line)',
+      dateBorder:un('date')?'var(--check)':'var(--line)',accBorder:un('account')?'var(--check)':'var(--line)',
+      cats:this.CATS.map(([n])=>{ const on=f.cat===n; return {name:n,bg:on?'var(--ink)':'var(--surface)',fg:on?'var(--bg)':'var(--ink)',border:on?'var(--ink)':'var(--line)',onClick:()=>this.setState(x=>({form:{...x.form,cat:n,...this.untag(x.form,'category')}}))}; }),
       impactTitle:`${f.cat} budget`,impactLeft:`${m(catLeftNow)} left`,
       impactLine:a>0?(after>=0?`After this expense, you’ll have ${m(after)} remaining in this category.`:`This puts you ${m(-after)} over your ${f.cat.toLowerCase()} budget.`):'Enter an amount to see the impact on this budget.',
       impactColor:a>0&&after<0?'var(--warn)':'var(--ink)'};
-    const setF=k=>e=>{ const v=e.target.value; this.setState(x=>({form:{...x.form,[k]:v}})); };
+    const setF=k=>e=>{ const v=e.target.value; this.setState(x=>({form:{...x.form,[k]:v,...this.untag(x.form,k)}})); };
+    const aiS=s.ai, nUn=(f.aiUnsure||[]).length, label={amount:'amount',merchant:'merchant',category:'category',date:'date',account:'paid from'};
+    const ai={text:aiS.text,busy:aiS.busy,btn:aiS.busy?'Reading…':'Fill with AI',cursor:aiS.busy?'progress':'pointer',opacity:aiS.busy?.6:1,hasError:!!aiS.error,error:aiS.error,done:aiS.done,idle:!aiS.done&&!aiS.error,
+      border:aiS.error?'var(--warn)':aiS.done?'var(--accent)':'var(--line)',msg:nUn?`Filled by AI. Please check: ${f.aiUnsure.map(k=>label[k]).join(', ')}.`:'Filled by AI. Check the details before saving.',msgColor:nUn?'var(--check)':'var(--good)'};
     // category view
     let cv={recent:[]};
     if(s.catName){ const name=s.catName, review=s.catMode==='review'; const cm=review?fMonth:s.month; const ct=this.monthTx(cm);
@@ -403,15 +448,17 @@ class Component extends DCLogic {
       txHeader,groups,noTx:filtered.length===0,
       accounts:[{name:'Checking',bal:m(4212.36+bal('Checking')-1993.09)},{name:'Credit card',bal:m(bal('Credit card'))},{name:'Savings',bal:m(8500+bal('Savings'))}],
       totalBudget:m(totalBudget),
-      startAdd:()=>this.setState(x=>({screen:'add',prev:x.screen,form:this.blankForm()})),
-      cancelAdd:()=>this.setState(x=>({screen:x.tab,form:this.blankForm()})),
-      fm,onAmount:e=>{ let v=e.target.value.replace(/[^0-9.]/g,''); const p=v.split('.'); if(p.length>2) v=p[0]+'.'+p.slice(1).join(''); if(p[1]&&p[1].length>2) v=p[0]+'.'+p[1].slice(0,2); this.setState(x=>({form:{...x.form,amount:v}})); },
-      onMerchant:setF('merchant'),onDate:e=>{ const v=e.target.value||'2026-10-06'; this.setState(x=>({form:{...x.form,date:v}})); },onAccount:setF('account'),onNote:setF('note'),
+      startAdd:()=>this.setState(x=>({screen:'add',prev:x.screen,form:this.blankForm(),ai:this.blankAi(),aiPrev:null})),
+      cancelAdd:()=>this.setState(x=>({screen:x.tab,form:this.blankForm(),ai:this.blankAi(),aiPrev:null})),
+      ai,onAiText:e=>{ const v=e.target.value.slice(0,300); this.setState(x=>({ai:{...x.ai,text:v,error:''}})); },onAiKey:e=>{ if(e.key==='Enter'){ e.preventDefault(); this.aiFill(); } },aiFill:()=>this.aiFill(),
+      aiUndo:()=>this.setState(x=>({form:x.aiPrev||this.blankForm(),aiPrev:null,ai:{...x.ai,done:false}})),
+      fm,onAmount:e=>{ let v=e.target.value.replace(/[^0-9.]/g,''); const p=v.split('.'); if(p.length>2) v=p[0]+'.'+p.slice(1).join(''); if(p[1]&&p[1].length>2) v=p[0]+'.'+p[1].slice(0,2); this.setState(x=>({form:{...x.form,amount:v,...this.untag(x.form,'amount')}})); },
+      onMerchant:setF('merchant'),onDate:e=>{ const v=e.target.value||'2026-10-06'; this.setState(x=>({form:{...x.form,date:v,...this.untag(x.form,'date')}})); },onAccount:setF('account'),onNote:setF('note'),
       review:()=>{ if(this.amt()<=0||!s.form.merchant.trim()){ this.setState(x=>({form:{...x.form,tried:true}})); return; } this.setState({screen:'cat',catName:s.form.cat,catMode:'review'}); },
       cv,catBack:()=>this.setState(x=>({screen:x.catMode==='review'?'add':(['overview','budgets','activity'].includes(x.prev)?x.prev:x.tab)})),editDraft:()=>this.setState({screen:'add'}),
       confirmExpense:()=>{ const ref='EXP-'+s.nextRef; const t={id:'n'+s.nextRef,merchant:s.form.merchant.trim(),cat:s.form.cat,amount:-this.amt(),date:s.form.date,account:s.form.account,note:s.form.note.trim(),ref};
-        this.setState(x=>({tx:[t,...x.tx],saved:t,screen:'saved',nextRef:x.nextRef+1,form:this.blankForm()})); },
-      sv,addAnother:()=>this.setState({screen:'add',form:this.blankForm(),saved:null,prev:'overview'}),
+        this.setState(x=>({tx:[t,...x.tx],saved:t,screen:'saved',nextRef:x.nextRef+1,form:this.blankForm(),ai:this.blankAi(),aiPrev:null})); },
+      sv,addAnother:()=>this.setState({screen:'add',form:this.blankForm(),ai:this.blankAi(),aiPrev:null,saved:null,prev:'overview'}),
       sheetOpen:!!s.sheet,sheetMonth:s.sheet==='month',sheetTx:s.sheet==='tx'&&!!tx,txd,closeSheet:()=>this.setState({sheet:null,confirmDel:false}),
       hasToast:!!s.toast,toast:s.toast
     };

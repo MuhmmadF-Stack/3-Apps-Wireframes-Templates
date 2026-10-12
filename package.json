@@ -1,0 +1,12 @@
+{
+  "name": "3-apps-wireframes-templates",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Three interactive mobile app prototypes. Pocket includes an AI expense input powered by Gemini.",
+  "scripts": {
+    "dev": "node server.mjs",
+    "test": "node --test tests/parseExpense.test.js"
+  },
+  "engines": { "node": ">=18" }
+}

@@ -6,7 +6,9 @@
 
 Designed and built by **Muhammad Mohtashim** · UI/UX Designer · AI-assisted design workflow
 
-[**▶ Live demo**](https://muhmmadf-stack.github.io/3-Apps-Wireframes-Templates/Index.dc.html) · [Figma file](#) · [Case study](#case-study)
+✦ **New:** Pocket now has an AI feature. Describe an expense in plain English or Roman Urdu and AI fills the form.
+
+[**▶ Live demo**](https://muhmmadf-stack.github.io/3-Apps-Wireframes-Templates/Index.dc.html) · [AI feature](#-ai-feature-describe-an-expense-in-your-own-words) · [Figma file](#) · [Case study](#case-study)
 
 <!-- Add a hero image or GIF here: three phone screens side by side -->
 <!-- ![Daily Dish, Stride and Pocket](docs/hero.png) -->
@@ -21,9 +23,70 @@ Designed and built by **Muhammad Mohtashim** · UI/UX Designer · AI-assisted de
 |---|---|---|---|
 | 🍜 | **Daily Dish** | Food delivery | Discover restaurants, customize dishes, apply promo codes, check out and track the order live |
 | 🏃 | **Stride** | Fitness | Hit a weekly goal, find workouts, run a real interval timer, review progress |
-| 💰 | **Pocket** | Budgeting | See what's left this month, search transactions, add and review expenses, edit budgets |
+| 💰 | **Pocket** | Budgeting | **✦ Add expenses by describing them in plain words (AI)**, see what's left this month, search transactions, edit budgets |
 
-All three are **clickable end to end**. These aren't static mockups; every screen, flow and state actually works. No install, no backend: open a file in the browser and use it like a real app.
+All three are **clickable end to end**. These aren't static mockups; every screen, flow and state actually works. No install needed: open a file in the browser and use it like a real app.
+
+---
+
+## ✦ AI feature: describe an expense in your own words
+
+In **Pocket**, you don't have to fill the expense form field by field. Type it the way you'd text a friend, in English, Roman Urdu or a mix, and AI fills the form for you:
+
+| You type | AI fills in (example) |
+|---|---|
+| `kal dhabe pe chai paratha 4.50` | **$4.50** · Dhaba · Dining out · *yesterday* · note "Chai and paratha" |
+| `uber to uni 6 on card` | **$6.00** · Uber · Transportation · today · Credit card |
+| `electricity bill 112` | **$112.00** · Electricity · Utilities · today |
+
+![Pocket AI: filled, needs checking, and error states](docs/pocket-ai.png)
+
+### How it works
+
+```
+Pocket app (browser)                 Our server                       Google Gemini
+──────────────────                   ──────────                       ─────────────
+"kal dhabe pe chai 4.50"  ──POST──▶  /api/parse-expense   ──────────▶  model returns JSON
+                                     • checks the input               that must match a
+form fields filled  ◀──── JSON ────  • adds the secret API key        fixed schema
+(with "AI" tags)                     • validates every field  ◀──────
+```
+
+- The **API key stays on the server** (`api/parse-expense.js` on Vercel, or `server.mjs` locally). It is never in the browser or in this repo.
+- Gemini is asked for **structured JSON output** with a fixed schema: amount, merchant, category (only the app's 8 categories), date, account, note, and a list of fields it was **unsure** about.
+- The server **never trusts the AI blindly** (`lib/parseExpense.js`). A negative amount, an invented category or a future date is replaced with a safe value and flagged for the user to check.
+- Input is capped at 300 characters, requests time out after 12 seconds, and there is a basic per-IP rate limit.
+
+### UX decisions for the AI
+
+Designing *around* the AI mattered more than the API call itself:
+
+- **AI suggests, the user decides.** AI only fills the form; nothing is saved until the user taps *Review expense*. Every field stays editable.
+- **Show what the AI did.** Fields filled by AI get a small `AI` tag. Fields it guessed get an amber `AI · CHECK` tag and are listed in plain words ("Please check: amount, category").
+- **Easy to reverse.** One tap on *Undo* restores the form exactly as it was.
+- **Edits are respected.** When you change a field yourself, its AI tag disappears, because it's your value now.
+- **Honest errors.** Messages say what happened and what to do next: not an expense, AI busy (free-tier limit), no connection, or AI not set up on this host.
+- **The old way still works.** The manual form is untouched, so the app is fully usable even if the AI is down.
+
+### Run the AI feature
+
+You need a free Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey) and Node.js 18+.
+
+**Locally**
+```bash
+cp .env.example .env        # Windows: copy .env.example .env
+# open .env and paste your key after GEMINI_API_KEY=
+node server.mjs             # then open http://localhost:3000
+```
+
+**Live on Vercel** (GitHub Pages can't run servers, so the AI part needs Vercel)
+1. Go to [vercel.com/new](https://vercel.com/new) and import this repository (no build settings needed)
+2. In **Settings → Environment Variables**, add `GEMINI_API_KEY` with your key
+3. Deploy, then open `/Pocket.dc.html` on your Vercel URL
+
+**Tests:** `npm test` runs 6 tests for the server logic with a mocked Gemini, so no key is needed.
+
+> On GitHub Pages or when opening the file directly, Pocket still works. *Fill with AI* just shows a message that AI isn't available on that host.
 
 ---
 
@@ -108,6 +171,7 @@ Every app also has a full **light and dark mode**, built on CSS variables (`--ac
 - Overview: remaining monthly budget, spending progress, income, top categories
 - Transactions grouped by day, searchable by merchant, category or note; All / Expenses / Income views
 - Transaction detail with delete confirmation; budgets recalculate instantly
+- **✦ AI input:** describe the expense in your own words and the form fills itself, with AI tags, "please check" hints and Undo
 - Add expense: validated amount and merchant, category picker, date, account, note, live budget impact preview
 - Review step → saved confirmation with reference number and updated balances
 - Budgets: 8 categories, over-budget and near-limit warnings, editable monthly limits
@@ -117,6 +181,8 @@ Every app also has a full **light and dark mode**, built on CSS variables (`--ac
 ---
 
 ## 🤖 How I used AI in this project
+
+AI shows up in two places: **inside the product** (the Pocket AI input above) and **in my workflow** (below).
 
 I use AI as part of my design workflow, the way a designer uses Figma plugins. It speeds up the work, but the decisions are mine.
 
@@ -136,28 +202,37 @@ I use AI as part of my design workflow, the way a designer uses Figma plugins. I
 ```bash
 git clone https://github.com/MuhmmadF-Stack/3-Apps-Wireframes-Templates.git
 cd 3-Apps-Wireframes-Templates
-python3 -m http.server 8000      # or: npx serve .
+node server.mjs                  # includes the AI feature (see above for the key)
 ```
 
-Open **http://localhost:8000/Index.dc.html**. You can also double-click `Index.dc.html` to open it directly.
+Open **http://localhost:3000**.
 
-> Keep `support.js` in the same folder as the `.dc.html` files; every prototype loads it.
+No Node.js? Any static server works too, just without the AI feature: `python3 -m http.server 8000` (on Windows: `python -m http.server 8000`), then open `http://localhost:8000/Index.dc.html`. You can also double-click `Index.dc.html`.
 
-### Publish on GitHub Pages
-1. Push the repo to GitHub
-2. **Settings → Pages → Deploy from a branch** → `main` / `(root)` → Save
-3. Live at `https://muhmmadf-stack.github.io/3-Apps-Wireframes-Templates/Index.dc.html`
+> An internet connection is needed: React and the fonts load from a CDN. Keep `support.js` in the same folder as the `.dc.html` files.
+
+### Publish on GitHub Pages (without AI)
+1. **Settings → Pages → Deploy from a branch** → `main` / `(root)` → Save
+2. Live at `https://muhmmadf-stack.github.io/3-Apps-Wireframes-Templates/`
+
+For the AI feature to work online, deploy on Vercel instead (steps in the AI section above).
 
 ---
 
 ## Project structure
 
 ```
-├── Index.dc.html        # Landing page linking all three apps
-├── Daily Dish.dc.html   # Food delivery prototype
-├── Stride.dc.html       # Fitness prototype
-├── Pocket.dc.html       # Budgeting prototype
-├── support.js           # Small runtime the prototypes load (uses React from a CDN)
+├── index.html               # Redirects to Index.dc.html
+├── Index.dc.html            # Landing page linking all three apps
+├── Daily Dish.dc.html       # Food delivery prototype
+├── Stride.dc.html           # Fitness prototype
+├── Pocket.dc.html           # Budgeting prototype (+ AI expense input)
+├── support.js               # Small runtime the prototypes load (uses React from a CDN)
+├── api/parse-expense.js     # Vercel serverless function for the AI feature
+├── lib/parseExpense.js      # AI logic: prompt, JSON schema, validation (server-side only)
+├── server.mjs               # Local dev server (static files + AI endpoint, no installs)
+├── tests/                   # npm test: server logic tests with mocked Gemini
+├── .env.example             # Copy to .env and add GEMINI_API_KEY
 └── LICENSE
 ```
 
@@ -176,8 +251,12 @@ Each app file has three parts: **markup** (screens), **logic** (a `Component` cl
 - **Edge states take longer than the main screens,** and they're what make a prototype feel real.
 - **Personality comes from type first, colour second.** Swapping the typeface changed each app's feel more than any colour did.
 - **Clickable beats static.** A working prototype gets far better feedback than a set of screenshots.
+- **With AI features, trust is the design problem.** Calling the API was quick. Deciding how to show what the AI did, what it guessed, and how to undo it took most of the time.
+- **Never put an API key in front-end code.** Anything in the browser is public, so the key lives on a small server function.
 
 ### Next steps
+- [ ] Usability-test the Pocket AI input: how often do users need to fix what the AI filled?
+- [ ] AI monthly summary in Pocket ("You spent 20% more on dining out than planned")
 - [ ] Run a 5-user usability test on the Daily Dish checkout flow and document findings
 - [ ] Replace image placeholders with real photography
 - [ ] Rebuild the design system as a Figma component library
@@ -185,7 +264,7 @@ Each app file has three parts: **markup** (screens), **logic** (a `Component` cl
 ---
 
 ## Notes
-- Front-end prototypes only: no real payments, accounts or location tracking. Data lives in memory and resets on reload.
+- Prototypes only: no real payments, accounts or location tracking. Data lives in memory and resets on reload. The only server part is the AI endpoint, which stores nothing.
 - Works in recent Chrome, Edge, Safari and Firefox (uses `oklch()` colours and `conic-gradient()`).
 - Fonts: Google Fonts (Bricolage Grotesque, Figtree, Archivo, Newsreader, IBM Plex Sans/Mono, JetBrains Mono).
 
