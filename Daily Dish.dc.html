@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html{--page:oklch(0.93 0.008 60);--bg:oklch(0.985 0.006 70);--surface:oklch(0.998 0.002 70);--ink:oklch(0.22 0.02 40);--muted:oklch(0.48 0.02 50);--line:oklch(0.9 0.01 60);--chip:oklch(0.95 0.01 60);--accent:oklch(0.57 0.19 33);--accent-soft:oklch(0.95 0.035 40);--good:oklch(0.52 0.12 150)}
+html[data-theme="dark"]{--page:oklch(0.13 0.008 40);--bg:oklch(0.18 0.01 40);--surface:oklch(0.23 0.012 40);--ink:oklch(0.96 0.006 70);--muted:oklch(0.74 0.015 60);--line:oklch(0.33 0.012 40);--chip:oklch(0.28 0.012 40);--accent:oklch(0.68 0.17 36);--accent-soft:oklch(0.3 0.06 36);--good:oklch(0.72 0.13 150)}
+body{margin:0;background:var(--page);font-family:Figtree,system-ui,sans-serif;color:var(--ink);transition:background .3s}
+button,input,textarea{font:inherit;color:inherit}
+input::placeholder,textarea::placeholder{color:var(--muted)}
+a{color:var(--accent)}a:hover{color:var(--ink)}
+.dd-scroll::-webkit-scrollbar{display:none}
+@keyframes ddpulse{0%{box-shadow:0 0 0 0 oklch(0.57 0.19 33 / .5)}100%{box-shadow:0 0 0 12px oklch(0.57 0.19 33 / 0)}}
+@keyframes ddup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes ddfade{from{opacity:0}to{opacity:1}}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:28px 16px">
+<div style="display:flex;align-items:center;gap:12px;width:390px;max-width:100%;justify-content:space-between">
+<div style="font:700 13px/1 Figtree,sans-serif;color:var(--muted);letter-spacing:.06em;text-transform:uppercase">Daily Dish · Food delivery</div>
+<button onClick="{{ toggleDark }}" style="border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">{{ themeLabel }}</button>
+</div>
+<div style="width:390px;height:844px;flex:none;border-radius:52px;border:10px solid oklch(0.16 0.01 40);background:var(--bg);position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 60px -20px oklch(0.2 0.02 40 / .35)">
+<div style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 15px/1 Figtree,sans-serif"><span>9:41</span><span style="width:24px;height:11px;border:1.5px solid var(--ink);border-radius:3px;padding:1px;display:flex"><span style="flex:1;background:var(--ink);border-radius:1px"></span></span></div>
+<div style="flex:1;position:relative;overflow:hidden">
+
+<sc-if value="{{ isDiscover }}" hint-placeholder-val="{{ true }}">
+<div class="dd-scroll" style="position:absolute;inset:0;overflow-y:auto;padding:6px 20px 110px;scrollbar-width:none">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div style="font:800 26px/1 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em">Daily<span style="color:var(--accent)">Dish</span></div>
+<button onClick="{{ goAccount }}" style="width:40px;height:40px;border-radius:50%;border:0;background:var(--chip);font-weight:700;font-size:14px;cursor:pointer">AM</button>
+</div>
+<button onClick="{{ openAddr }}" style="margin-top:16px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;border:0;background:none;padding:0;cursor:pointer;text-align:left">
+<span style="font:700 11px/1 Figtree,sans-serif;letter-spacing:.08em;color:var(--muted)">DELIVER TO HOME</span>
+<span style="font-weight:600;font-size:15px">{{ addrLine }} <span style="color:var(--accent)">▾</span></span>
+</button>
+<div style="margin-top:14px;display:flex;align-items:center;gap:10px;background:var(--chip);border-radius:14px;padding:0 14px;height:48px">
+<span style="width:13px;height:13px;border:2px solid var(--muted);border-radius:50%;flex:none"></span>
+<input value="{{ query }}" onChange="{{ onQuery }}" placeholder="Search restaurants or dishes" style="flex:1;border:0;background:none;outline:none;font-size:15px;min-width:0">
+<sc-if value="{{ hasQuery }}"><button onClick="{{ clearQuery }}" style="border:0;background:none;cursor:pointer;color:var(--muted);font-size:16px;padding:4px">✕</button></sc-if>
+</div>
+<div style="display:flex;gap:8px;margin-top:14px;overflow-x:auto;scrollbar-width:none">
+<sc-for list="{{ cats }}" as="c" hint-placeholder-count="4">
+<button onClick="{{ c.onClick }}" style="flex:none;border:1px solid {{ c.border }};background:{{ c.bg }};color:{{ c.fg }};border-radius:999px;padding:9px 16px;font-weight:600;font-size:14px;cursor:pointer">{{ c.label }}</button>
+</sc-for>
+</div>
+<sc-if value="{{ showHero }}" hint-placeholder-val="{{ true }}">
+<div style="margin-top:20px;border-radius:22px;background:var(--accent);color:oklch(0.99 0.01 60);padding:20px;display:flex;flex-direction:column;gap:6px">
+<div style="font:800 28px/1.05 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em">What sounds good?</div>
+<div style="font-size:14px;opacity:.95">Fresh favorites, delivered to your door.</div>
+<button onClick="{{ copyPromo }}" style="margin-top:10px;align-self:flex-start;border:1.5px dashed oklch(0.99 0.01 60);background:none;color:inherit;border-radius:10px;padding:7px 12px;font:500 12px/1 'JetBrains Mono',monospace;cursor:pointer">DISH10 · 10% off · tap to apply</button>
+</div>
+</sc-if>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px">
+<div style="font:700 19px/1.1 'Bricolage Grotesque',sans-serif">{{ listTitle }}</div>
+<button onClick="{{ openFilter }}" style="border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:600;font-size:13px;cursor:pointer">{{ filterLabel }}</button>
+</div>
+<div style="display:flex;flex-direction:column;gap:18px;margin-top:14px">
+<sc-for list="{{ restaurants }}" as="r" hint-placeholder-count="3">
+<div onClick="{{ r.onOpen }}" style="cursor:pointer;display:flex;flex-direction:column;gap:10px">
+<div style="height:150px;border-radius:18px;position:relative;background:repeating-linear-gradient(135deg,var(--chip) 0 10px,var(--line) 10px 11px);display:flex;align-items:center;justify-content:center">
+<span style="font:500 11px/1 'JetBrains Mono',monospace;color:var(--muted)">{{ r.photo }}</span>
+<button onClick="{{ r.onFav }}" style="position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:50%;border:0;background:var(--surface);color:{{ r.heartColor }};font-size:18px;cursor:pointer">{{ r.heart }}</button>
+<span style="position:absolute;left:10px;bottom:10px;background:var(--surface);border-radius:999px;padding:5px 10px;font-size:12px;font-weight:700">{{ r.etaLabel }}</span>
+</div>
+<div style="display:flex;justify-content:space-between;gap:10px">
+<div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+<div style="font:700 17px/1.2 'Bricolage Grotesque',sans-serif">{{ r.name }}</div>
+<div style="font-size:13px;color:var(--muted)">{{ r.tags }}</div>
+<sc-if value="{{ r.hasMatch }}"><div style="font-size:12px;color:var(--accent);font-weight:600">{{ r.match }}</div></sc-if>
+</div>
+<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:none">
+<div style="font-size:13px;font-weight:700">★ {{ r.rating }} <span style="color:var(--muted);font-weight:500">({{ r.reviews }})</span></div>
+<div style="font-size:13px;color:var(--muted)">{{ r.feeLabel }}</div>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{ noResults }}">
+<div style="padding:40px 10px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center">
+<div style="font:700 18px/1.2 'Bricolage Grotesque',sans-serif">No matches</div>
+<div style="color:var(--muted);font-size:14px">Try another search or clear your filters.</div>
+<button onClick="{{ resetAll }}" style="border:0;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 16px;font-weight:600;cursor:pointer">Clear search &amp; filters</button>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isMenu }}">
+<div class="dd-scroll" style="position:absolute;inset:0;overflow-y:auto;padding-bottom:110px;scrollbar-width:none">
+<div style="height:190px;position:relative;background:repeating-linear-gradient(135deg,var(--chip) 0 10px,var(--line) 10px 11px);display:flex;align-items:center;justify-content:center">
+<span style="font:500 11px/1 'JetBrains Mono',monospace;color:var(--muted)">RESTAURANT COVER IMAGE</span>
+<button onClick="{{ back }}" style="position:absolute;top:10px;left:16px;width:40px;height:40px;border-radius:50%;border:0;background:var(--surface);font-size:18px;cursor:pointer">←</button>
+<div style="position:absolute;top:10px;right:16px;display:flex;gap:8px">
+<button onClick="{{ toggleMenuSearch }}" style="height:40px;border-radius:999px;border:0;background:var(--surface);padding:0 14px;font-weight:600;font-size:13px;cursor:pointer">Search</button>
+<button onClick="{{ rest.onFav }}" style="width:40px;height:40px;border-radius:50%;border:0;background:var(--surface);color:{{ rest.heartColor }};font-size:18px;cursor:pointer">{{ rest.heart }}</button>
+</div>
+</div>
+<div style="padding:18px 20px 0">
+<div style="font:800 26px/1.05 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em">{{ rest.name }}</div>
+<div style="margin-top:6px;font-size:14px;color:var(--muted)">★ {{ rest.rating }} ({{ rest.reviews }}) · {{ rest.etaLabel }} · {{ rest.feeLabel }}</div>
+<sc-if value="{{ menuSearchOpen }}">
+<input value="{{ menuQuery }}" onChange="{{ onMenuQuery }}" placeholder="Search this menu" style="margin-top:14px;width:100%;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);padding:0 14px;outline:none;font-size:15px">
+</sc-if>
+</div>
+<div style="position:sticky;top:0;z-index:2;background:var(--bg);display:flex;gap:8px;padding:14px 20px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line)">
+<sc-for list="{{ sections }}" as="c" hint-placeholder-count="4">
+<button onClick="{{ c.onClick }}" style="flex:none;border:0;background:{{ c.bg }};color:{{ c.fg }};border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px;cursor:pointer">{{ c.label }}</button>
+</sc-for>
+</div>
+<div style="padding:16px 20px 0">
+<div style="font:700 18px/1 'Bricolage Grotesque',sans-serif;margin-bottom:6px">{{ sectionTitle }}</div>
+<sc-for list="{{ menuItems }}" as="it" hint-placeholder-count="3">
+<div onClick="{{ it.onOpen }}" style="display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line);cursor:pointer">
+<div style="flex:1;display:flex;flex-direction:column;gap:5px;min-width:0">
+<div style="font-weight:700;font-size:16px">{{ it.name }}</div>
+<div style="font-size:13px;line-height:1.4;color:var(--muted);text-wrap:pretty">{{ it.desc }}</div>
+<div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+<span style="font-weight:700;font-size:15px">{{ it.priceLabel }}</span>
+<sc-if value="{{ it.inCart }}"><span style="font-size:12px;font-weight:700;color:var(--good)">{{ it.inCartLabel }}</span></sc-if>
+</div>
+</div>
+<div style="width:92px;flex:none;display:flex;flex-direction:column;align-items:center;gap:8px">
+<div style="width:92px;height:76px;border-radius:12px;background:repeating-linear-gradient(135deg,var(--chip) 0 8px,var(--line) 8px 9px)"></div>
+<button onClick="{{ it.onOpen }}" style="border:1.5px solid var(--ink);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px;cursor:pointer">+ Add</button>
+</div>
+</div>
+</sc-for>
+<sc-if value="{{ menuEmpty }}"><div style="padding:30px 0;color:var(--muted);text-align:center;font-size:14px">No dishes match “{{ menuQuery }}”.</div></sc-if>
+<div style="padding:18px 0;font-size:13px;color:var(--muted);text-align:center">Tap + Add to customize your meal.</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isItem }}">
+<div style="position:absolute;inset:0;display:flex;flex-direction:column">
+<div class="dd-scroll" style="flex:1;overflow-y:auto;scrollbar-width:none">
+<div style="height:170px;position:relative;background:repeating-linear-gradient(135deg,var(--chip) 0 10px,var(--line) 10px 11px);display:flex;align-items:center;justify-content:center">
+<span style="font:500 11px/1 'JetBrains Mono',monospace;color:var(--muted)">DISH PHOTO</span>
+<button onClick="{{ back }}" style="position:absolute;top:10px;left:16px;width:40px;height:40px;border-radius:50%;border:0;background:var(--surface);font-size:16px;cursor:pointer">✕</button>
+</div>
+<div style="padding:18px 20px 20px">
+<div style="font:700 11px/1 Figtree,sans-serif;letter-spacing:.08em;color:var(--muted)">CUSTOMIZE YOUR ORDER</div>
+<div style="margin-top:8px;font:800 25px/1.1 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em">{{ iv.name }}</div>
+<div style="margin-top:6px;font-size:14px;line-height:1.45;color:var(--muted)">{{ iv.desc }} From {{ iv.from }}.</div>
+<sc-for list="{{ iv.groups }}" as="g" hint-placeholder-count="2">
+<div style="margin-top:22px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;padding-bottom:8px;border-bottom:1px solid var(--line)">
+<span style="font:700 17px/1.2 'Bricolage Grotesque',sans-serif">{{ g.title }}</span>
+<span style="font-size:12px;font-weight:700;padding:4px 8px;border-radius:6px;background:{{ g.badgeBg }};color:{{ g.badgeFg }}">{{ g.badge }}</span>
+</div>
+<sc-for list="{{ g.opts }}" as="o" hint-placeholder-count="3">
+<button onClick="{{ o.onClick }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:14px 0;border:0;border-bottom:1px solid var(--line);background:none;cursor:pointer;text-align:left">
+<span style="width:22px;height:22px;flex:none;border-radius:{{ o.radius }};border:2px solid {{ o.ring }};background:{{ o.fill }};display:flex;align-items:center;justify-content:center;color:var(--bg);font-size:12px;font-weight:800">{{ o.mark }}</span>
+<span style="flex:1;font-size:15px;font-weight:500">{{ o.label }}</span>
+<span style="font-size:14px;color:var(--muted)">{{ o.price }}</span>
+</button>
+</sc-for>
+</div>
+</sc-for>
+<div style="margin-top:22px;font:700 17px/1.2 'Bricolage Grotesque',sans-serif">Special instructions</div>
+<textarea value="{{ iv.note }}" onChange="{{ onNote }}" placeholder="e.g. No onions, please" rows="2" style="margin-top:10px;width:100%;border-radius:12px;border:1px solid var(--line);background:var(--surface);padding:12px 14px;outline:none;font-size:15px;resize:none"></textarea>
+<div style="margin-top:6px;font-size:12px;color:var(--muted)">Allergies? Contact the restaurant before ordering.</div>
+<div style="margin-top:20px;display:flex;justify-content:space-between;align-items:center">
+<span style="font:700 17px/1.2 'Bricolage Grotesque',sans-serif">Quantity</span>
+<div style="display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:999px;padding:3px">
+<button onClick="{{ qtyDown }}" style="width:38px;height:38px;border-radius:50%;border:0;background:var(--chip);font-size:18px;cursor:pointer">−</button>
+<span style="min-width:30px;text-align:center;font-weight:700">{{ iv.qty }}</span>
+<button onClick="{{ qtyUp }}" style="width:38px;height:38px;border-radius:50%;border:0;background:var(--chip);font-size:18px;cursor:pointer">+</button>
+</div>
+</div>
+</div>
+</div>
+<div style="padding:12px 20px 20px;border-top:1px solid var(--line);background:var(--bg)">
+<button onClick="{{ addToCart }}" style="width:100%;height:54px;border:0;border-radius:16px;background:var(--accent);color:oklch(0.99 0.01 60);font-weight:700;font-size:16px;cursor:pointer">{{ iv.cta }}</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCart }}">
+<div style="position:absolute;inset:0;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;gap:12px;padding:6px 20px 12px">
+<button onClick="{{ back }}" style="width:40px;height:40px;border-radius:50%;border:0;background:var(--chip);font-size:18px;cursor:pointer">←</button>
+<div style="font:800 24px/1 'Bricolage Grotesque',sans-serif">Checkout</div>
+</div>
+<sc-if value="{{ cartEmpty }}">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:30px;text-align:center">
+<div style="font:700 20px/1.2 'Bricolage Grotesque',sans-serif">Your cart is empty</div>
+<div style="font-size:14px;color:var(--muted)">Add a few dishes to get started.</div>
+<button onClick="{{ goDiscover }}" style="margin-top:6px;border:0;background:var(--accent);color:oklch(0.99 0.01 60);border-radius:14px;padding:12px 18px;font-weight:700;cursor:pointer">Browse restaurants</button>
+</div>
+</sc-if>
+<sc-if value="{{ cartFull }}">
+<div class="dd-scroll" style="flex:1;overflow-y:auto;padding:0 20px 20px;scrollbar-width:none;display:flex;flex-direction:column;gap:12px">
+<div style="border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;gap:12px">
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-weight:700">Home · {{ addr.street }}</span><span style="font-size:13px;color:var(--muted)">{{ addr.apt }} · {{ addr.instr }}</span></div>
+<button onClick="{{ openAddr }}" style="border:0;background:none;color:var(--accent);font-weight:700;cursor:pointer;align-self:flex-start">Edit</button>
+</div>
+<div style="display:flex;gap:10px">
+<sc-for list="{{ speeds }}" as="sp" hint-placeholder-count="2">
+<button onClick="{{ sp.onClick }}" style="flex:1;text-align:left;border:{{ sp.border }};background:var(--surface);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;cursor:pointer">
+<span style="display:flex;justify-content:space-between;width:100%;font-weight:700;font-size:14px"><span>{{ sp.label }}</span><span>{{ sp.fee }}</span></span>
+<span style="font-size:12px;color:var(--muted)">Arrives {{ sp.window }}</span>
+</button>
+</sc-for>
+</div>
+<div style="border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:14px 16px">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font:700 17px/1.2 'Bricolage Grotesque',sans-serif">{{ cartRest.name }}</span><button onClick="{{ addItems }}" style="border:0;background:none;color:var(--accent);font-weight:700;cursor:pointer">Add items</button></div>
+<sc-for list="{{ lines }}" as="l" hint-placeholder-count="1">
+<div style="padding:14px 0 4px;border-top:1px solid var(--line);margin-top:12px;display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;justify-content:space-between;gap:10px;font-weight:700"><span>{{ l.name }}</span><span>{{ l.total }}</span></div>
+<sc-if value="{{ l.hasOpts }}"><div style="font-size:13px;color:var(--muted)">{{ l.opts }}</div></sc-if>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+<div style="display:flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:999px;padding:2px">
+<button onClick="{{ l.dec }}" style="width:30px;height:30px;border-radius:50%;border:0;background:var(--chip);cursor:pointer">−</button>
+<span style="min-width:26px;text-align:center;font-weight:700;font-size:14px">{{ l.qty }}</span>
+<button onClick="{{ l.inc }}" style="width:30px;height:30px;border-radius:50%;border:0;background:var(--chip);cursor:pointer">+</button>
+</div>
+<div style="display:flex;gap:14px;font-size:13px;font-weight:600"><button onClick="{{ l.edit }}" style="border:0;background:none;cursor:pointer;color:var(--ink);padding:0">Edit</button><button onClick="{{ l.remove }}" style="border:0;background:none;cursor:pointer;color:var(--accent);padding:0">Remove</button></div>
+</div>
+</div>
+</sc-for>
+</div>
+<button onClick="{{ openPay }}" style="border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;text-align:left">
+<span style="display:flex;flex-direction:column;gap:3px"><span style="font-weight:700">{{ pay }}</span><span style="font-size:13px;color:var(--muted)">Payment method</span></span>
+<span style="color:var(--accent);font-weight:700">Change</span>
+</button>
+<div style="border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px 14px">
+<sc-if value="{{ promoApplied }}">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="display:flex;flex-direction:column;gap:3px"><span style="font:500 13px/1 'JetBrains Mono',monospace;color:var(--good)">{{ promo.code }} applied</span><span style="font-size:13px;color:var(--muted)">{{ promo.label }}</span></span><button onClick="{{ removePromo }}" style="border:0;background:none;color:var(--accent);font-weight:700;cursor:pointer">Remove</button></div>
+</sc-if>
+<sc-if value="{{ promoNotApplied }}">
+<div style="display:flex;gap:8px">
+<input value="{{ promoInput }}" onChange="{{ onPromo }}" placeholder="Add promo code" style="flex:1;min-width:0;height:42px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:0 12px;outline:none;font:500 14px 'JetBrains Mono',monospace;text-transform:uppercase">
+<button onClick="{{ applyPromo }}" style="border:0;background:var(--ink);color:var(--bg);border-radius:10px;padding:0 16px;font-weight:700;cursor:pointer">Apply</button>
+</div>
+<sc-if value="{{ hasPromoMsg }}"><div style="margin-top:8px;font-size:13px;color:var(--accent);font-weight:600">{{ promoMsg }}</div></sc-if>
+<div style="margin-top:8px;font-size:12px;color:var(--muted)">Try DISH10, FREEDEL or WELCOME5</div>
+</sc-if>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;padding:4px 4px 0;font-size:14px">
+<sc-for list="{{ totals }}" as="t" hint-placeholder-count="4">
+<div style="display:flex;justify-content:space-between;color:{{ t.color }};font-weight:{{ t.weight }};font-size:{{ t.size }}"><span>{{ t.label }}</span><span>{{ t.value }}</span></div>
+</sc-for>
+</div>
+</div>
+<div style="padding:12px 20px 18px;border-top:1px solid var(--line)">
+<button onClick="{{ placeOrder }}" style="width:100%;height:54px;border:0;border-radius:16px;background:var(--accent);color:oklch(0.99 0.01 60);font-weight:700;font-size:16px;cursor:pointer">Place order · {{ grandTotal }}</button>
+<div style="margin-top:8px;text-align:center;font-size:12px;color:var(--muted)">By placing your order, you agree to our terms.</div>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isTrack }}">
+<div class="dd-scroll" style="position:absolute;inset:0;overflow-y:auto;padding:6px 20px 30px;scrollbar-width:none">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div style="display:flex;align-items:center;gap:12px"><button onClick="{{ goOrders }}" style="width:40px;height:40px;border-radius:50%;border:0;background:var(--chip);font-size:18px;cursor:pointer">←</button><span style="font:800 22px/1 'Bricolage Grotesque',sans-serif">Track your order</span></div>
+<button onClick="{{ openHelp }}" style="border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:600;font-size:13px;cursor:pointer">Help</button>
+</div>
+<div style="margin-top:18px;font:500 12px/1 'JetBrains Mono',monospace;color:var(--muted)">ORDER #{{ tr.id }} · {{ tr.statusCaps }}</div>
+<div style="margin-top:8px;font:800 30px/1.05 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em">{{ tr.headline }}</div>
+<div style="margin-top:6px;font-size:15px;color:var(--muted)">{{ tr.sub }}</div>
+<div style="margin-top:18px;height:150px;border-radius:20px;position:relative;overflow:hidden;background:repeating-linear-gradient(135deg,var(--chip) 0 10px,var(--line) 10px 11px)">
+<span style="position:absolute;top:12px;left:14px;font:500 11px/1 'JetBrains Mono',monospace;color:var(--muted)">LIVE MAP</span>
+<div style="position:absolute;left:34px;right:34px;top:84px;height:4px;border-radius:2px;background:var(--line)"></div>
+<div style="position:absolute;left:34px;top:84px;height:4px;border-radius:2px;background:var(--accent);width:{{ tr.barW }};transition:width .5s linear"></div>
+<div style="position:absolute;left:26px;top:78px;width:16px;height:16px;border-radius:4px;background:var(--ink)"></div>
+<div style="position:absolute;right:26px;top:78px;width:16px;height:16px;border-radius:50%;background:var(--ink)"></div>
+<div style="position:absolute;top:73px;left:{{ tr.dotLeft }};width:26px;height:26px;margin-left:-13px;border-radius:50%;background:var(--accent);border:4px solid var(--surface);animation:ddpulse 1.4s infinite;transition:left .5s linear"></div>
+<div style="position:absolute;left:14px;bottom:12px;font-size:12px;font-weight:700">{{ tr.restName }}</div>
+<div style="position:absolute;right:14px;bottom:12px;font-size:12px;font-weight:700">Home</div>
+</div>
+<div style="margin-top:20px;display:flex;flex-direction:column">
+<sc-for list="{{ tr.steps }}" as="st" hint-placeholder-count="4">
+<div style="display:flex;gap:14px">
+<div style="display:flex;flex-direction:column;align-items:center;width:20px;flex:none">
+<span style="width:20px;height:20px;border-radius:50%;border:2px solid {{ st.ring }};background:{{ st.fill }};flex:none;display:flex;align-items:center;justify-content:center;color:var(--bg);font-size:11px;font-weight:800">{{ st.mark }}</span>
+<span style="flex:1;width:2px;background:{{ st.lineColor }};min-height:22px"></span>
+</div>
+<div style="padding-bottom:18px;display:flex;flex-direction:column;gap:3px">
+<span style="font-weight:700;font-size:15px;color:{{ st.color }}">{{ st.title }}</span>
+<span style="font-size:13px;color:var(--muted)">{{ st.sub }}</span>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{ tr.lines }}" as="l" hint-placeholder-count="1"><div style="font-weight:600">{{ l }}</div></sc-for>
+<div style="display:flex;justify-content:space-between;font-size:14px;color:var(--muted);padding-top:8px;border-top:1px solid var(--line)"><span>Total paid · {{ tr.pay }}</span><span style="color:var(--ink);font-weight:700">{{ tr.total }}</span></div>
+</div>
+<div style="margin-top:12px;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:3px">
+<span style="font-weight:700">{{ addr.street }}, {{ addr.apt }}</span><span style="font-size:13px;color:var(--muted)">{{ addr.instr }}</span>
+</div>
+<sc-if value="{{ tr.delivered }}">
+<button onClick="{{ tr.reorder }}" style="margin-top:14px;width:100%;height:52px;border:0;border-radius:16px;background:var(--accent);color:oklch(0.99 0.01 60);font-weight:700;font-size:15px;cursor:pointer">Reorder</button>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isOrders }}">
+<div class="dd-scroll" style="position:absolute;inset:0;overflow-y:auto;padding:6px 20px 30px;scrollbar-width:none">
+<div style="font:800 26px/1 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em">Orders</div>
+<sc-if value="{{ hasActive }}">
+<div style="margin-top:20px;font:700 11px/1 Figtree,sans-serif;letter-spacing:.08em;color:var(--muted)">IN PROGRESS</div>
+<sc-for list="{{ activeOrders }}" as="o" hint-placeholder-count="1">
+<button onClick="{{ o.open }}" style="margin-top:10px;width:100%;text-align:left;border:0;background:var(--accent-soft);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;cursor:pointer">
+<span style="display:flex;justify-content:space-between;width:100%;font-weight:700"><span>{{ o.restName }}</span><span style="color:var(--accent)">{{ o.status }}</span></span>
+<span style="height:6px;border-radius:3px;background:var(--line);width:100%;overflow:hidden;display:flex"><span style="height:100%;background:var(--accent);width:{{ o.barW }};transition:width .5s linear"></span></span>
+<span style="font-size:13px;color:var(--muted)">#{{ o.id }} · Arriving {{ o.window }}</span>
+</button>
+</sc-for>
+</sc-if>
+<div style="margin-top:22px;font:700 11px/1 Figtree,sans-serif;letter-spacing:.08em;color:var(--muted)">PAST ORDERS</div>
+<sc-for list="{{ pastOrders }}" as="o" hint-placeholder-count="2">
+<div style="padding:16px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:center">
+<button onClick="{{ o.open }}" style="border:0;background:none;padding:0;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:3px;min-width:0">
+<span style="font-weight:700">{{ o.restName }}</span>
+<span style="font-size:13px;color:var(--muted)">{{ o.date }} · {{ o.summary }}</span>
+<span style="font-size:13px;color:var(--muted)">{{ o.status }} · {{ o.total }}</span>
+</button>
+<button onClick="{{ o.reorder }}" style="flex:none;border:1.5px solid var(--ink);background:none;border-radius:999px;padding:7px 14px;font-weight:700;font-size:13px;cursor:pointer">Reorder</button>
+</div>
+</sc-for>
+<sc-if value="{{ noPast }}"><div style="padding:20px 0;color:var(--muted);font-size:14px">No past orders yet.</div></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isFavs }}">
+<div class="dd-scroll" style="position:absolute;inset:0;overflow-y:auto;padding:6px 20px 110px;scrollbar-width:none">
+<div style="font:800 26px/1 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em">Favorites</div>
+<div style="display:flex;flex-direction:column;gap:12px;margin-top:18px">
+<sc-for list="{{ favList }}" as="r" hint-placeholder-count="1">
+<div onClick="{{ r.onOpen }}" style="cursor:pointer;display:flex;gap:14px;align-items:center;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px">
+<div style="width:72px;height:72px;flex:none;border-radius:12px;background:repeating-linear-gradient(135deg,var(--chip) 0 8px,var(--line) 8px 9px)"></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font:700 16px/1.2 'Bricolage Grotesque',sans-serif">{{ r.name }}</span><span style="font-size:13px;color:var(--muted)">{{ r.tags }}</span><span style="font-size:13px;color:var(--muted)">★ {{ r.rating }} · {{ r.etaLabel }}</span></div>
+<button onClick="{{ r.onFav }}" style="width:38px;height:38px;flex:none;border-radius:50%;border:0;background:var(--chip);color:var(--accent);font-size:18px;cursor:pointer">♥</button>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{ noFavs }}">
+<div style="padding:50px 10px;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center">
+<div style="font:700 18px/1.2 'Bricolage Grotesque',sans-serif">No favorites yet</div>
+<div style="color:var(--muted);font-size:14px">Tap ♡ on any restaurant to save it here.</div>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isAccount }}">
+<div class="dd-scroll" style="position:absolute;inset:0;overflow-y:auto;padding:6px 20px 30px;scrollbar-width:none">
+<div style="display:flex;align-items:center;gap:14px">
+<div style="width:56px;height:56px;border-radius:50%;background:var(--accent);color:oklch(0.99 0.01 60);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px">AM</div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font:800 22px/1 'Bricolage Grotesque',sans-serif">Alex Morgan</span><span style="font-size:13px;color:var(--muted)">alex.morgan@mail.com</span></div>
+</div>
+<div style="margin-top:22px;border:1px solid var(--line);background:var(--surface);border-radius:16px;overflow:hidden">
+<button onClick="{{ openAddr }}" style="width:100%;border:0;background:none;padding:15px 16px;display:flex;justify-content:space-between;cursor:pointer;text-align:left;border-bottom:1px solid var(--line)"><span style="display:flex;flex-direction:column;gap:3px"><span style="font-weight:600">Delivery address</span><span style="font-size:13px;color:var(--muted)">{{ addrLine }}</span></span><span style="color:var(--muted)">›</span></button>
+<button onClick="{{ openPay }}" style="width:100%;border:0;background:none;padding:15px 16px;display:flex;justify-content:space-between;cursor:pointer;text-align:left;border-bottom:1px solid var(--line)"><span style="display:flex;flex-direction:column;gap:3px"><span style="font-weight:600">Payment</span><span style="font-size:13px;color:var(--muted)">{{ pay }}</span></span><span style="color:var(--muted)">›</span></button>
+<button onClick="{{ goOrders }}" style="width:100%;border:0;background:none;padding:15px 16px;display:flex;justify-content:space-between;cursor:pointer;text-align:left;border-bottom:1px solid var(--line)"><span style="font-weight:600">Order history</span><span style="color:var(--muted)">{{ orderCount }} ›</span></button>
+<button onClick="{{ toggleDark }}" style="width:100%;border:0;background:none;padding:15px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;text-align:left"><span style="font-weight:600">Dark mode</span><span style="width:46px;height:28px;border-radius:14px;background:{{ sw.bg }};padding:3px;display:flex;justify-content:{{ sw.justify }};transition:background .2s"><span style="width:22px;height:22px;border-radius:50%;background:oklch(0.99 0 0)"></span></span></button>
+</div>
+<div style="margin-top:22px;font:700 11px/1 Figtree,sans-serif;letter-spacing:.08em;color:var(--muted)">YOUR OFFERS</div>
+<div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+<sc-for list="{{ offers }}" as="of" hint-placeholder-count="3">
+<div style="border:1.5px dashed var(--line);border-radius:14px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+<span style="display:flex;flex-direction:column;gap:4px"><span style="font:500 14px/1 'JetBrains Mono',monospace;color:var(--accent)">{{ of.code }}</span><span style="font-size:13px;color:var(--muted)">{{ of.label }}</span></span>
+<button onClick="{{ of.use }}" style="border:0;background:var(--chip);border-radius:999px;padding:7px 12px;font-weight:700;font-size:12px;cursor:pointer">Use</button>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showCartBar }}">
+<button onClick="{{ goCart }}" style="position:absolute;left:16px;right:16px;bottom:14px;height:56px;border:0;border-radius:18px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 10px 24px -8px oklch(0.2 0.02 40 / .45);z-index:5">
+<span style="display:flex;align-items:center;gap:10px"><span style="background:var(--accent);color:oklch(0.99 0.01 60);border-radius:999px;min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;padding:0 7px">{{ cartCount }}</span>View cart</span>
+<span>{{ cartSubtotal }}</span>
+</button>
+</sc-if>
+</div>
+
+<sc-if value="{{ showTabs }}" hint-placeholder-val="{{ true }}">
+<div style="height:78px;flex:none;border-top:1px solid var(--line);background:var(--bg);display:flex;padding:8px 8px 22px">
+<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+<button onClick="{{ t.onClick }}" style="position:relative;flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:{{ t.color }};font-weight:600;font-size:12px">
+<span style="width:20px;height:20px;border-radius:{{ t.shape }};border:2px solid {{ t.color }};background:{{ t.fill }}"></span>{{ t.label }}
+<sc-if value="{{ t.badge }}"><span style="position:absolute;top:0;left:calc(50% + 8px);width:8px;height:8px;border-radius:50%;background:var(--accent)"></span></sc-if>
+</button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ sheetOpen }}">
+<div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:oklch(0.15 0.01 40 / .45);z-index:20;animation:ddfade .2s"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:21;background:var(--bg);border-radius:26px 26px 0 0;padding:10px 20px 28px;animation:ddup .25s ease-out;max-height:80%;overflow-y:auto">
+<div style="width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 14px"></div>
+
+<sc-if value="{{ sheetFilter }}">
+<div style="font:800 21px/1 'Bricolage Grotesque',sans-serif">Filter &amp; sort</div>
+<div style="margin-top:16px;font-weight:700;font-size:14px">Sort by</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+<sc-for list="{{ sorts }}" as="c" hint-placeholder-count="4"><button onClick="{{ c.onClick }}" style="border:1px solid {{ c.border }};background:{{ c.bg }};color:{{ c.fg }};border-radius:999px;padding:8px 14px;font-weight:600;font-size:13px;cursor:pointer">{{ c.label }}</button></sc-for>
+</div>
+<sc-for list="{{ toggles }}" as="tg" hint-placeholder-count="2">
+<button onClick="{{ tg.onClick }}" style="margin-top:12px;width:100%;border:0;border-bottom:1px solid var(--line);background:none;padding:12px 0;display:flex;justify-content:space-between;align-items:center;cursor:pointer;text-align:left"><span style="font-weight:600">{{ tg.label }}</span><span style="width:46px;height:28px;border-radius:14px;background:{{ tg.bg }};padding:3px;display:flex;justify-content:{{ tg.justify }}"><span style="width:22px;height:22px;border-radius:50%;background:oklch(0.99 0 0)"></span></span></button>
+</sc-for>
+<div style="display:flex;gap:10px;margin-top:20px">
+<button onClick="{{ resetFilters }}" style="flex:1;height:50px;border:1px solid var(--line);background:var(--surface);border-radius:14px;font-weight:700;cursor:pointer">Reset</button>
+<button onClick="{{ closeSheet }}" style="flex:2;height:50px;border:0;background:var(--accent);color:oklch(0.99 0.01 60);border-radius:14px;font-weight:700;cursor:pointer">Show {{ resultCount }}</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ sheetAddr }}">
+<div style="font:800 21px/1 'Bricolage Grotesque',sans-serif">Delivery address</div>
+<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">
+<label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600">Street<input value="{{ draft.street }}" onChange="{{ onDraftStreet }}" style="height:46px;border:1px solid {{ draftErrBorder }};border-radius:12px;background:var(--surface);padding:0 14px;outline:none;font-size:15px;font-weight:400"></label>
+<label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600">Apt / suite<input value="{{ draft.apt }}" onChange="{{ onDraftApt }}" style="height:46px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:0 14px;outline:none;font-size:15px;font-weight:400"></label>
+<label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600">Drop-off instructions<input value="{{ draft.instr }}" onChange="{{ onDraftInstr }}" style="height:46px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:0 14px;outline:none;font-size:15px;font-weight:400"></label>
+<sc-if value="{{ draftErr }}"><div style="font-size:13px;color:var(--accent);font-weight:600">Enter a street address.</div></sc-if>
+</div>
+<button onClick="{{ saveAddr }}" style="margin-top:18px;width:100%;height:50px;border:0;background:var(--accent);color:oklch(0.99 0.01 60);border-radius:14px;font-weight:700;cursor:pointer">Save address</button>
+</sc-if>
+
+<sc-if value="{{ sheetPay }}">
+<div style="font:800 21px/1 'Bricolage Grotesque',sans-serif">Payment method</div>
+<div style="display:flex;flex-direction:column;margin-top:10px">
+<sc-for list="{{ pays }}" as="p" hint-placeholder-count="3"><button onClick="{{ p.onClick }}" style="border:0;border-bottom:1px solid var(--line);background:none;padding:15px 0;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left"><span style="width:22px;height:22px;border-radius:50%;border:2px solid {{ p.ring }};background:{{ p.fill }}"></span><span style="font-weight:600">{{ p.label }}</span></button></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ sheetHelp }}">
+<div style="font:800 21px/1 'Bricolage Grotesque',sans-serif">Need help?</div>
+<div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">
+<button onClick="{{ contactRest }}" style="height:50px;border:1px solid var(--line);background:var(--surface);border-radius:14px;font-weight:700;cursor:pointer">Contact restaurant</button>
+<sc-if value="{{ canCancel }}"><button onClick="{{ cancelOrder }}" style="height:50px;border:0;background:var(--accent-soft);color:var(--accent);border-radius:14px;font-weight:700;cursor:pointer">Cancel order</button></sc-if>
+<sc-if value="{{ cantCancel }}"><div style="font-size:13px;color:var(--muted);text-align:center">Orders can be canceled until the courier picks them up.</div></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ sheetSwitch }}">
+<div style="font:800 21px/1.1 'Bricolage Grotesque',sans-serif">Start a new cart?</div>
+<div style="margin-top:10px;font-size:14px;line-height:1.45;color:var(--muted)">Your cart has items from {{ cartRest.name }}. Adding this dish will clear them.</div>
+<div style="display:flex;gap:10px;margin-top:18px">
+<button onClick="{{ closeSheet }}" style="flex:1;height:50px;border:1px solid var(--line);background:var(--surface);border-radius:14px;font-weight:700;cursor:pointer">Keep cart</button>
+<button onClick="{{ confirmSwitch }}" style="flex:1;height:50px;border:0;background:var(--accent);color:oklch(0.99 0.01 60);border-radius:14px;font-weight:700;cursor:pointer">New cart</button>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ hasToast }}">
+<div style="position:absolute;left:20px;right:20px;top:54px;z-index:30;background:var(--ink);color:var(--bg);border-radius:14px;padding:12px 16px;font-weight:600;font-size:14px;animation:ddfade .2s;text-align:center">{{ toast }}</div>
+</sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  G = {
+    base:{t:'Choose your base',req:true,max:1,o:[['Brown rice',0],['Quinoa',1],['Mixed greens',0]]},
+    bowlx:{t:'Make it yours',req:false,max:3,o:[['Avocado',2],['Extra chicken',4],['Dressing on the side',0]]},
+    medx:{t:'Make it yours',req:false,max:3,o:[['Avocado',2],['Extra falafel',3],['Dressing on the side',0]]},
+    dress:{t:'Choose a dressing',req:true,max:1,o:[['Lemon herb',0],['Tahini',0],['Balsamic',0]]},
+    protein:{t:'Add protein',req:false,max:1,o:[['Grilled chicken',4],['Crispy tofu',3]]},
+    size:{t:'Size',req:true,max:1,o:[['Regular',0],['Large',1.5]]},
+    pizza:{t:'Size',req:true,max:1,o:[['12″',0],['16″',5]]},
+    top:{t:'Extras',req:false,max:3,o:[['Extra basil',0],['Burrata',4],['Hot honey',1.5]]},
+    dip:{t:'Dip',req:true,max:1,o:[['Marinara',0],['Garlic butter',0],['Ranch',0]]},
+    spice:{t:'Spice level',req:true,max:1,o:[['Mild',0],['Medium',0],['Hot',0]]},
+    noodx:{t:'Add-ons',req:false,max:3,o:[['Soft egg',1.5],['Extra noodles',2],['Bok choy',1.5]]},
+    wrap:{t:'Make it yours',req:false,max:2,o:[['Extra feta',1.5],['Spicy harissa',0]]}
+  };
+  R = [
+    {id:'green',name:'Green Bowl Kitchen',tags:'Healthy · Bowls · Salads',cats:['Healthy'],rating:4.8,reviews:'320+',eta:[20,30],fee:1.99,secs:['Popular','Bowls','Salads','Drinks'],items:[
+      {id:'harvest',name:'Harvest Chicken Bowl',desc:'Grilled chicken, brown rice, roasted vegetables, tahini.',price:14,secs:['Popular','Bowls'],groups:['base','bowlx']},
+      {id:'med',name:'Mediterranean Bowl',desc:'Falafel, quinoa, cucumber, hummus, lemon dressing.',price:13,secs:['Popular','Bowls'],groups:['base','medx']},
+      {id:'garden',name:'Garden Crunch Salad',desc:'Mixed greens, avocado, chickpeas, seeds.',price:11.5,secs:['Popular','Salads'],groups:['dress','protein']},
+      {id:'tofu',name:'Spicy Tofu Bowl',desc:'Crispy tofu, jasmine rice, pickled carrots, chili crisp.',price:13.5,secs:['Bowls'],groups:['base','bowlx']},
+      {id:'kale',name:'Kale Caesar',desc:'Lacinato kale, parmesan, sourdough crumbs.',price:12,secs:['Salads'],groups:['protein']},
+      {id:'juice',name:'Cold-pressed Green Juice',desc:'Kale, apple, cucumber, ginger.',price:6.5,secs:['Drinks'],groups:['size']},
+      {id:'yuzu',name:'Sparkling Yuzu',desc:'Lightly sweet, 12 oz can.',price:4,secs:['Drinks'],groups:[]}]},
+    {id:'corner',name:'Corner Slice',tags:'Pizza · Italian',cats:['Pizza'],rating:4.7,reviews:'210+',eta:[25,35],fee:2.49,secs:['Popular','Pizzas','Sides','Drinks'],items:[
+      {id:'marg',name:'Margherita',desc:'San Marzano tomato, fior di latte, basil.',price:13,secs:['Popular','Pizzas'],groups:['pizza','top']},
+      {id:'pep',name:'Pepperoni',desc:'Cup-and-char pepperoni, mozzarella, oregano.',price:15,secs:['Popular','Pizzas'],groups:['pizza','top']},
+      {id:'truffle',name:'Mushroom & Truffle',desc:'Wild mushrooms, truffle cream, thyme.',price:17,secs:['Pizzas'],groups:['pizza','top']},
+      {id:'knots',name:'Garlic Knots',desc:'Six knots, parsley, parmesan.',price:6,secs:['Popular','Sides'],groups:['dip']},
+      {id:'pell',name:'San Pellegrino',desc:'Sparkling water, 500 ml.',price:3,secs:['Drinks'],groups:[]}]},
+    {id:'noodle',name:'Noodle House',tags:'Asian · Noodles',cats:['Asian'],rating:4.6,reviews:'180+',eta:[30,40],fee:1.49,secs:['Popular','Noodles','Small plates','Drinks'],items:[
+      {id:'dandan',name:'Spicy Dan Dan',desc:'Hand-pulled noodles, pork, Sichuan pepper, peanuts.',price:14.5,secs:['Popular','Noodles'],groups:['spice','noodx']},
+      {id:'pho',name:'Chicken Pho',desc:'Slow-simmered broth, rice noodles, herbs, lime.',price:15,secs:['Popular','Noodles'],groups:['noodx']},
+      {id:'lomein',name:'Veggie Lo Mein',desc:'Egg noodles, cabbage, mushrooms, scallion.',price:12.5,secs:['Noodles'],groups:['spice','noodx']},
+      {id:'gyoza',name:'Pork Gyoza (6)',desc:'Pan-fried, black vinegar dip.',price:8,secs:['Popular','Small plates'],groups:[]},
+      {id:'thaitea',name:'Thai Iced Tea',desc:'Black tea, condensed milk.',price:4.5,secs:['Drinks'],groups:[]}]},
+    {id:'fig',name:'Fig & Feta',tags:'Healthy · Mediterranean · Wraps',cats:['Healthy'],rating:4.5,reviews:'95+',eta:[15,25],fee:0.99,secs:['Popular','Wraps','Drinks'],items:[
+      {id:'falwrap',name:'Falafel Wrap',desc:'Falafel, pickled turnip, tahini, greens.',price:11,secs:['Popular','Wraps'],groups:['wrap']},
+      {id:'greek',name:'Greek Salad',desc:'Tomato, cucumber, olives, feta, oregano.',price:10.5,secs:['Popular'],groups:['protein']},
+      {id:'lemonade',name:'Mint Lemonade',desc:'Fresh lemon, mint, cane sugar.',price:4,secs:['Drinks'],groups:['size']}]}
+  ];
+  PROMOS = {DISH10:{code:'DISH10',label:'10% off your subtotal'},FREEDEL:{code:'FREEDEL',label:'Free delivery on this order'},WELCOME5:{code:'WELCOME5',label:'$5 off orders of $15+'}};
+  state = {
+    screen:'discover', tab:'discover', prev:'discover', restId:'green', item:null,
+    cart:{restId:null,lines:[]}, query:'', cat:'All', sort:'Recommended', fUnder30:false, fLowFee:false,
+    sheet:null, favs:['green'], promoInput:'', promo:null, promoMsg:'', speed:'standard',
+    pay:'Visa ending in 4242', addr:{street:'123 Oak Street',apt:'Apt 4B',instr:'Leave at my door'}, draft:null, draftErr:false,
+    menuSection:'Popular', menuSearch:false, menuQuery:'', pendingAdd:null, trackId:null, toast:'', now:Date.now(), dark:false,
+    orders:[
+      {id:'DD1031',restId:'corner',lines:[{itemId:'marg',name:'Margherita',opts:['16″','Burrata'],sel:{pizza:[1],top:[1]},note:'',qty:1,unit:22}],total:28.47,pay:'Visa ending in 4242',date:'Sep 28',window:'7:10–7:20 PM',placedAt:null,status:'Delivered'},
+      {id:'DD1019',restId:'noodle',lines:[{itemId:'dandan',name:'Spicy Dan Dan',opts:['Medium','Soft egg'],sel:{spice:[1],noodx:[0]},note:'',qty:2,unit:16}],total:36.37,pay:'Visa ending in 4242',date:'Sep 21',window:'12:30–12:40 PM',placedAt:null,status:'Delivered'}
+    ]
+  };
+  componentDidMount(){ this.applyTheme(); this.iv=setInterval(()=>{ if(this.state.orders.some(o=>o.placedAt&&o.status==='Active')) this.tick(); },500); }
+  componentWillUnmount(){ clearInterval(this.iv); clearTimeout(this.tt); }
+  componentDidUpdate(){ this.applyTheme(); }
+  applyTheme(){ document.documentElement.dataset.theme=this.state.dark?'dark':'light'; }
+  tick(){ const now=Date.now(); this.setState(s=>({now,orders:s.orders.map(o=>o.placedAt&&o.status==='Active'&&(now-o.placedAt)/1000>=this.DUR?{...o,status:'Delivered'}:o)})); }
+  DUR=48;
+  m(n){ return '$'+n.toFixed(2); }
+  rest(id){ return this.R.find(r=>r.id===id); }
+  showToast(t){ clearTimeout(this.tt); this.setState({toast:t}); this.tt=setTimeout(()=>this.setState({toast:''}),2200); }
+  go(screen,extra={}){ this.setState(s=>({prev:s.screen,screen,...extra})); }
+  tabGo(tab){ this.setState({tab,screen:tab,sheet:null}); }
+  openRest(id){ const r=this.rest(id); this.setState(s=>({prev:s.screen==='menu'?s.prev:s.screen,screen:'menu',restId:id,menuSection:r.secs[0],menuSearch:false,menuQuery:''})); }
+  toggleFav(id){ this.setState(s=>{ const has=s.favs.includes(id); return {favs:has?s.favs.filter(f=>f!==id):[...s.favs,id]}; }); const was=this.state.favs.includes(id); this.showToast(was?'Removed from favorites':'Saved to favorites'); }
+  openItem(restId,itemId,line,idx){
+    const it=this.rest(restId).items.find(i=>i.id===itemId); const sel={};
+    it.groups.forEach(g=>{ sel[g]=line?[...(line.sel[g]||[])]:(this.G[g].req?[0]:[]); });
+    this.setState(s=>({prev:s.screen,screen:'item',item:{restId,itemId,sel,qty:line?line.qty:1,note:line?line.note:'',editIndex:idx??null}}));
+  }
+  unit(restId,itemId,sel){ const it=this.rest(restId).items.find(i=>i.id===itemId); let p=it.price; it.groups.forEach(g=>(sel[g]||[]).forEach(i=>p+=this.G[g].o[i][1])); return p; }
+  optLabels(it,sel){ const out=[]; it.groups.forEach(g=>(sel[g]||[]).forEach(i=>out.push(this.G[g].o[i][0]))); return out; }
+  makeLine(ctx){ const it=this.rest(ctx.restId).items.find(i=>i.id===ctx.itemId); return {itemId:it.id,name:it.name,opts:this.optLabels(it,ctx.sel),sel:ctx.sel,note:ctx.note.trim(),qty:ctx.qty,unit:this.unit(ctx.restId,ctx.itemId,ctx.sel)}; }
+  commitAdd(ctx,fresh){
+    const line=this.makeLine(ctx);
+    this.setState(s=>{
+      let lines=fresh?[]:[...s.cart.lines];
+      if(ctx.editIndex!=null&&!fresh){ lines[ctx.editIndex]=line; }
+      else { const k=lines.findIndex(l=>l.itemId===line.itemId&&JSON.stringify(l.sel)===JSON.stringify(line.sel)&&l.note===line.note); if(k>=0) lines[k]={...lines[k],qty:lines[k].qty+line.qty}; else lines.push(line); }
+      const back=s.prev==='cart'?'cart':'menu';
+      return {cart:{restId:ctx.restId,lines},item:null,sheet:null,pendingAdd:null,screen:back,prev:back==='cart'?'menu':s.prev==='item'?'discover':s.prev};
+    });
+    this.showToast(ctx.editIndex!=null&&!fresh?'Cart updated':`Added ${line.qty} × ${line.name}`);
+  }
+  addToCart(){ const s=this.state, ctx=s.item; if(s.cart.lines.length&&s.cart.restId!==ctx.restId){ this.setState({sheet:'switch',pendingAdd:ctx}); return; } this.commitAdd(ctx,false); }
+  totalsFor(cart,promo,speed){
+    const r=cart.restId?this.rest(cart.restId):null; const sub=cart.lines.reduce((a,l)=>a+l.unit*l.qty,0);
+    let fee=r?r.fee+(speed==='priority'?2.99:0):0; let disc=0;
+    if(promo){ if(promo.code==='DISH10') disc=Math.round(sub*10)/100; if(promo.code==='FREEDEL') fee=0; if(promo.code==='WELCOME5') disc=sub>=15?5:0; }
+    const tax=Math.round((sub-disc)*0.09*100)/100; return {sub,fee,disc,tax,total:Math.round((sub-disc+fee+tax)*100)/100};
+  }
+  applyPromo(raw){
+    const code=(raw??this.state.promoInput).trim().toUpperCase(); const p=this.PROMOS[code];
+    if(!code){ this.setState({promoMsg:'Enter a code first.'}); return; }
+    if(!p){ this.setState({promoMsg:`“${code}” isn't a valid code.`}); return; }
+    const sub=this.state.cart.lines.reduce((a,l)=>a+l.unit*l.qty,0);
+    if(code==='WELCOME5'&&sub<15){ this.setState({promoMsg:'WELCOME5 needs a subtotal of $15 or more.'}); return; }
+    this.setState({promo:p,promoMsg:'',promoInput:''}); this.showToast(`${code} applied`);
+  }
+  placeOrder(){
+    const s=this.state; if(!s.cart.lines.length) return; const t=this.totalsFor(s.cart,s.promo,s.speed);
+    const num=1042+s.orders.filter(o=>o.placedAt).length; const id='DD'+num;
+    const order={id,restId:s.cart.restId,lines:s.cart.lines,total:t.total,pay:s.pay,date:'Today',window:s.speed==='priority'?'9:55–10:05 AM':'10:05–10:15 AM',placedAt:Date.now(),status:'Active'};
+    this.setState({orders:[order,...s.orders],cart:{restId:null,lines:[]},promo:null,promoMsg:'',promoInput:'',trackId:id,screen:'track',tab:'orders',prev:'orders',speed:'standard'});
+  }
+  reorder(o){
+    const s=this.state; const apply=()=>{ this.setState({cart:{restId:o.restId,lines:o.lines.map(l=>({...l}))},promo:null,screen:'cart',prev:s.screen}); this.showToast('Items added to your cart'); };
+    apply();
+  }
+  stageOf(o){ if(o.status==='Canceled') return -1; if(o.status==='Delivered'&&!o.placedAt) return 3; const e=(this.state.now-o.placedAt)/1000; return o.status==='Delivered'||e>=this.DUR?3:e>=26?2:e>=5?1:0; }
+  progOf(o){ if(!o.placedAt) return 1; if(o.status==='Delivered') return 1; return Math.min(1,(this.state.now-o.placedAt)/1000/this.DUR); }
+  renderVals(){
+    const s=this.state, m=n=>this.m(n), q=s.query.trim().toLowerCase();
+    const chip=(on)=>({bg:on?'var(--ink)':'var(--surface)',fg:on?'var(--bg)':'var(--ink)',border:on?'var(--ink)':'var(--line)'});
+    const sw=on=>({bg:on?'var(--accent)':'var(--line)',justify:on?'flex-end':'flex-start'});
+    const rv=r=>{ const fav=s.favs.includes(r.id); const hit=q&&!r.name.toLowerCase().includes(q)&&!r.tags.toLowerCase().includes(q)?r.items.find(i=>i.name.toLowerCase().includes(q)):null;
+      return {...r,photo:r.name.toUpperCase()+' · PHOTO',etaLabel:`${r.eta[0]}–${r.eta[1]} min`,feeLabel:m(r.fee)+' delivery',heart:fav?'♥':'♡',heartColor:fav?'var(--accent)':'var(--ink)',hasMatch:!!hit,match:hit?`Serves ${hit.name}`:'',onOpen:()=>this.openRest(r.id),onFav:e=>{e.stopPropagation();this.toggleFav(r.id);}}; };
+    let list=this.R.filter(r=>(s.cat==='All'||r.cats.includes(s.cat))&&(!q||r.name.toLowerCase().includes(q)||r.tags.toLowerCase().includes(q)||r.items.some(i=>i.name.toLowerCase().includes(q)))&&(!s.fUnder30||r.eta[1]<=30)&&(!s.fLowFee||r.fee<2));
+    if(s.sort==='Top rated') list=[...list].sort((a,b)=>b.rating-a.rating);
+    if(s.sort==='Fastest') list=[...list].sort((a,b)=>a.eta[0]-b.eta[0]);
+    if(s.sort==='Lowest fee') list=[...list].sort((a,b)=>a.fee-b.fee);
+    const nFilters=(s.fUnder30?1:0)+(s.fLowFee?1:0)+(s.sort!=='Recommended'?1:0);
+    const r=this.rest(s.restId); const restV=rv(r);
+    const mq=s.menuQuery.trim().toLowerCase();
+    const cartCount=s.cart.lines.reduce((a,l)=>a+l.qty,0); const tt=this.totalsFor(s.cart,s.promo,s.speed);
+    const menuItems=r.items.filter(i=>mq?i.name.toLowerCase().includes(mq)||i.desc.toLowerCase().includes(mq):i.secs.includes(s.menuSection)).map(i=>{ const inC=s.cart.restId===r.id?s.cart.lines.filter(l=>l.itemId===i.id).reduce((a,l)=>a+l.qty,0):0; return {...i,priceLabel:m(i.price),inCart:inC>0,inCartLabel:`${inC} in cart`,onOpen:e=>{e.stopPropagation();this.openItem(r.id,i.id);}}; });
+    let iv={groups:[],qty:1,note:'',name:'',desc:'',from:'',cta:''};
+    if(s.item){ const ir=this.rest(s.item.restId), it=ir.items.find(i=>i.id===s.item.itemId);
+      iv={name:it.name,desc:it.desc,from:m(it.price),qty:s.item.qty,note:s.item.note,
+        cta:`${s.item.editIndex!=null?'Update cart':'Add to cart'} · ${m(this.unit(ir.id,it.id,s.item.sel)*s.item.qty)}`,
+        groups:it.groups.map(gid=>{ const g=this.G[gid]; const sel=s.item.sel[gid]||[]; const single=g.max===1;
+          return {title:g.t,badge:g.req?'Required · Pick 1':(single?'Optional · Pick 1':'Optional'),badgeBg:g.req?'var(--accent-soft)':'var(--chip)',badgeFg:g.req?'var(--accent)':'var(--muted)',
+            opts:g.o.map((o,i)=>{ const on=sel.includes(i); return {label:o[0],price:o[1]?'+'+m(o[1]):(g.req?'Included':'Free'),radius:single?'50%':'6px',ring:on?'var(--accent)':'var(--line)',fill:on?'var(--accent)':'transparent',mark:on?'✓':'',
+              onClick:()=>this.setState(st=>{ const cur=st.item.sel[gid]||[]; let nx; if(single){ nx=on?(g.req?cur:[]):[i]; } else { nx=on?cur.filter(x=>x!==i):(cur.length<g.max?[...cur,i]:cur); } return {item:{...st.item,sel:{...st.item.sel,[gid]:nx}}}; })}; })}; })};
+    }
+    const cartRest=s.cart.restId?this.rest(s.cart.restId):{name:''};
+    const lines=s.cart.lines.map((l,idx)=>({...l,total:m(l.unit*l.qty),hasOpts:l.opts.length>0||!!l.note,opts:[...l.opts,...(l.note?[l.note]:[])].join(' · '),
+      inc:()=>this.setState(st=>({cart:{...st.cart,lines:st.cart.lines.map((x,k)=>k===idx?{...x,qty:x.qty+1}:x)}})),
+      dec:()=>this.setState(st=>{ const ls=st.cart.lines.map((x,k)=>k===idx?{...x,qty:x.qty-1}:x).filter(x=>x.qty>0); return {cart:{restId:ls.length?st.cart.restId:null,lines:ls}}; }),
+      remove:()=>{ this.setState(st=>{ const ls=st.cart.lines.filter((x,k)=>k!==idx); return {cart:{restId:ls.length?st.cart.restId:null,lines:ls}}; }); this.showToast(`Removed ${l.name}`); },
+      edit:()=>this.openItem(s.cart.restId,l.itemId,l,idx)}));
+    const totals=[{label:'Subtotal',value:m(tt.sub)}];
+    if(tt.disc>0) totals.push({label:`Promo (${s.promo.code})`,value:'−'+m(tt.disc),color:'var(--good)'});
+    totals.push({label:'Delivery fee',value:tt.fee===0&&s.cart.restId?'Free':m(tt.fee)},{label:'Taxes',value:m(tt.tax)},{label:'Total',value:m(tt.total),weight:800,size:'17px'});
+    totals.forEach(t=>{ t.color=t.color||'var(--ink)'; t.weight=t.weight||500; t.size=t.size||'14px'; });
+    const ordV=o=>{ const st=this.stageOf(o); const rr=this.rest(o.restId); const p=this.progOf(o);
+      return {id:o.id,restName:rr.name,window:o.window,date:o.date,total:m(o.total),summary:o.lines.map(l=>`${l.qty} × ${l.name}`).join(', '),status:o.status==='Canceled'?'Canceled':st===3?'Delivered':['Confirmed','Preparing','On the way'][st],barW:Math.round(p*100)+'%',
+        open:()=>this.setState(x=>({trackId:o.id,screen:'track',tab:'orders',prev:x.screen})),reorder:()=>this.reorder(o)}; };
+    const activeOrders=s.orders.filter(o=>o.status==='Active').map(ordV);
+    const pastOrders=s.orders.filter(o=>o.status!=='Active').map(ordV);
+    let tr={steps:[],lines:[]}; const to=s.orders.find(o=>o.id===s.trackId);
+    if(to){ const st=this.stageOf(to), p=this.progOf(to), rr=this.rest(to.restId);
+      const canceled=to.status==='Canceled';
+      const defs=[['Order confirmed','9:41 AM · Payment received'],['Preparing your food',st===1?'Now · Freshly made to order':st>1?'Done':'Up next'],['On the way',st===2?'Jordan is heading your way on a bike':st>2?'Picked up':'Your courier will be assigned soon'],['Delivered',st===3?`${s.addr.instr}`:'Arriving '+to.window]];
+      tr={id:to.id,restName:rr.name,total:m(to.total),pay:to.pay.replace('Visa ending in ','Visa •••• ').replace('Mastercard ending in ','MC •••• '),delivered:st===3||canceled,reorder:()=>this.reorder(to),
+        statusCaps:canceled?'CANCELED':['CONFIRMED','PREPARING','ON THE WAY','DELIVERED'][st],
+        headline:canceled?'Order canceled':st===3?'Enjoy your meal!':`Arriving ${to.window}`,
+        sub:canceled?'You have not been charged.':st===3?`Delivered from ${rr.name}.`:st===2?'Your courier is on the way.':`${rr.name} is ${st===0?'confirming':'preparing'} your meal.`,
+        barW:`calc((100% - 68px) * ${p.toFixed(3)})`,dotLeft:`calc(34px + (100% - 68px) * ${p.toFixed(3)})`,
+        lines:to.lines.map(l=>`${l.qty} × ${l.name}`),
+        steps:defs.map((d,i)=>{ const done=!canceled&&i<st||(i===3&&st===3), cur=!canceled&&i===st&&st<3; return {title:d[0],sub:d[1],ring:done||cur?'var(--accent)':'var(--line)',fill:done?'var(--accent)':cur?'var(--accent-soft)':'transparent',mark:done?'✓':'',color:done||cur?'var(--ink)':'var(--muted)',lineColor:i===3?'transparent':(done?'var(--accent)':'var(--line)')}; })};
+    }
+    const scr=s.screen;
+    const tabDefs=[['discover','Discover','6px'],['orders','Orders','4px'],['favs','Favorites','50%'],['account','Account','50% 50% 6px 6px']];
+    return {
+      themeLabel:s.dark?'Light mode':'Dark mode', toggleDark:()=>this.setState(x=>({dark:!x.dark})),
+      isDiscover:scr==='discover',isMenu:scr==='menu',isItem:scr==='item',isCart:scr==='cart',isTrack:scr==='track',isOrders:scr==='orders',isFavs:scr==='favs',isAccount:scr==='account',
+      showTabs:['discover','orders','favs','account','track'].includes(scr),
+      tabs:tabDefs.map(([id,label,shape])=>{ const on=s.tab===id; return {label,shape,color:on?'var(--accent)':'var(--muted)',fill:on?'var(--accent-soft)':'transparent',badge:id==='orders'&&activeOrders.length>0,onClick:()=>this.tabGo(id)}; }),
+      goAccount:()=>this.tabGo('account'),goOrders:()=>this.tabGo('orders'),goDiscover:()=>this.tabGo('discover'),
+      addr:s.addr,addrLine:`${s.addr.street}, ${s.addr.apt}`.replace(/, $/,''),
+      openAddr:()=>this.setState({sheet:'addr',draft:{...s.addr},draftErr:false}),
+      query:s.query,hasQuery:!!s.query,onQuery:e=>this.setState({query:e.target.value}),clearQuery:()=>this.setState({query:''}),
+      cats:['All','Healthy','Pizza','Asian'].map(c=>({label:c,...chip(s.cat===c),onClick:()=>this.setState({cat:c})})),
+      showHero:!q&&s.cat==='All',
+      copyPromo:()=>{ this.setState({promoInput:'DISH10'}); if(s.cart.lines.length){ this.applyPromo('DISH10'); } else this.showToast('DISH10 will be ready at checkout'); },
+      listTitle:q?`Results for “${s.query.trim()}”`:s.cat==='All'?'Restaurants near you':`${s.cat} near you`,
+      filterLabel:nFilters?`Filter · ${nFilters}`:'Filter',openFilter:()=>this.setState({sheet:'filter'}),
+      restaurants:list.map(rv),noResults:list.length===0,resultCount:list.length===1?'1 restaurant':`${list.length} restaurants`,
+      resetAll:()=>this.setState({query:'',cat:'All',fUnder30:false,fLowFee:false,sort:'Recommended'}),
+      resetFilters:()=>this.setState({fUnder30:false,fLowFee:false,sort:'Recommended'}),
+      sorts:['Recommended','Top rated','Fastest','Lowest fee'].map(c=>({label:c,...chip(s.sort===c),onClick:()=>this.setState({sort:c})})),
+      toggles:[{label:'Arrives in under 30 min',on:s.fUnder30,k:'fUnder30'},{label:'Delivery fee under $2',on:s.fLowFee,k:'fLowFee'}].map(t=>({label:t.label,...sw(t.on),onClick:()=>this.setState({[t.k]:!t.on})})),
+      rest:restV,back:()=>{ if(scr==='item') this.setState(x=>({screen:x.prev==='cart'?'cart':'menu',prev:x.prev==='cart'?'menu':'discover',item:null})); else if(scr==='menu') this.setState(x=>({screen:['discover','favs','orders','account'].includes(x.prev)?x.prev:x.tab})); else if(scr==='cart') this.setState(x=>({screen:x.prev==='item'||x.prev==='cart'?'menu':x.prev})); },
+      toggleMenuSearch:()=>this.setState(x=>({menuSearch:!x.menuSearch,menuQuery:''})),menuSearchOpen:s.menuSearch,menuQuery:s.menuQuery,onMenuQuery:e=>this.setState({menuQuery:e.target.value}),
+      sections:r.secs.map(c=>{ const on=!mq&&s.menuSection===c; return {label:c,bg:on?'var(--ink)':'var(--chip)',fg:on?'var(--bg)':'var(--ink)',onClick:()=>this.setState({menuSection:c,menuQuery:''})}; }),
+      sectionTitle:mq?'Search results':s.menuSection==='Popular'?'Popular picks':s.menuSection,menuItems,menuEmpty:menuItems.length===0,
+      iv,onNote:e=>{ const v=e.target.value; this.setState(x=>({item:{...x.item,note:v}})); },
+      qtyUp:()=>this.setState(x=>({item:{...x.item,qty:Math.min(20,x.item.qty+1)}})),qtyDown:()=>this.setState(x=>({item:{...x.item,qty:Math.max(1,x.item.qty-1)}})),
+      addToCart:()=>this.addToCart(),
+      showCartBar:cartCount>0&&['discover','menu','favs'].includes(scr)&&!s.sheet,cartCount,cartSubtotal:m(tt.sub),goCart:()=>this.go('cart'),
+      cartEmpty:!s.cart.lines.length,cartFull:s.cart.lines.length>0,cartRest,lines,
+      addItems:()=>{ this.setState(x=>({restId:x.cart.restId,screen:'menu',prev:'discover',menuSearch:false,menuQuery:'',menuSection:this.rest(x.cart.restId).secs[0]})); },
+      speeds:[['standard','Standard',s.cart.restId?m(this.rest(s.cart.restId).fee):'','10:05–10:15 AM'],['priority','Priority',s.cart.restId?m(this.rest(s.cart.restId).fee+2.99):'','9:55–10:05 AM']].map(([id,label,fee,window])=>({label,fee,window,border:s.speed===id?'2px solid var(--accent)':'1px solid var(--line)',onClick:()=>this.setState({speed:id})})),
+      pay:s.pay,openPay:()=>this.setState({sheet:'pay'}),
+      pays:['Visa ending in 4242','Mastercard ending in 8812','Apple Pay'].map(p=>({label:p,ring:s.pay===p?'var(--accent)':'var(--line)',fill:s.pay===p?'var(--accent)':'transparent',onClick:()=>{ this.setState({pay:p,sheet:null}); this.showToast('Payment method updated'); }})),
+      promo:s.promo||{code:'',label:''},promoApplied:!!s.promo,promoNotApplied:!s.promo,promoInput:s.promoInput,onPromo:e=>this.setState({promoInput:e.target.value,promoMsg:''}),applyPromo:()=>this.applyPromo(),removePromo:()=>this.setState({promo:null}),promoMsg:s.promoMsg,hasPromoMsg:!!s.promoMsg,
+      totals,grandTotal:m(tt.total),placeOrder:()=>this.placeOrder(),
+      tr,openHelp:()=>this.setState({sheet:'help'}),
+      canCancel:!!to&&to.status==='Active'&&this.stageOf(to)<2,cantCancel:!!to&&!(to.status==='Active'&&this.stageOf(to)<2)&&to.status==='Active',
+      cancelOrder:()=>{ this.setState(x=>({sheet:null,orders:x.orders.map(o=>o.id===x.trackId?{...o,status:'Canceled'}:o)})); this.showToast('Order canceled'); },
+      contactRest:()=>{ this.setState({sheet:null}); this.showToast(`Calling ${to?this.rest(to.restId).name:'restaurant'}…`); },
+      hasActive:activeOrders.length>0,activeOrders,pastOrders,noPast:pastOrders.length===0,orderCount:String(s.orders.length),
+      favList:this.R.filter(x=>s.favs.includes(x.id)).map(rv),noFavs:s.favs.length===0,
+      sw:sw(s.dark),
+      offers:Object.values(this.PROMOS).map(p=>({...p,use:()=>{ this.setState({promoInput:p.code,screen:'cart',prev:'account'}); }})),
+      sheetOpen:!!s.sheet,sheetFilter:s.sheet==='filter',sheetAddr:s.sheet==='addr',sheetPay:s.sheet==='pay',sheetHelp:s.sheet==='help',sheetSwitch:s.sheet==='switch',
+      closeSheet:()=>this.setState({sheet:null,pendingAdd:null}),
+      confirmSwitch:()=>{ const ctx={...s.pendingAdd,editIndex:null}; this.setState({promo:null}); this.commitAdd(ctx,true); },
+      draft:s.draft||{street:'',apt:'',instr:''},draftErr:s.draftErr,draftErrBorder:s.draftErr?'var(--accent)':'var(--line)',
+      onDraftStreet:e=>{ const v=e.target.value; this.setState(x=>({draft:{...x.draft,street:v},draftErr:false})); },
+      onDraftApt:e=>{ const v=e.target.value; this.setState(x=>({draft:{...x.draft,apt:v}})); },
+      onDraftInstr:e=>{ const v=e.target.value; this.setState(x=>({draft:{...x.draft,instr:v}})); },
+      saveAddr:()=>{ const d=s.draft; if(!d.street.trim()){ this.setState({draftErr:true}); return; } this.setState({addr:{street:d.street.trim(),apt:d.apt.trim(),instr:d.instr.trim()||'Hand it to me'},sheet:null}); this.showToast('Address saved'); },
+      hasToast:!!s.toast,toast:s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>

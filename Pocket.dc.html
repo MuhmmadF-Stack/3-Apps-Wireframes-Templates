@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html{--page:oklch(0.92 0.01 80);--bg:oklch(0.975 0.008 85);--surface:oklch(0.995 0.004 85);--ink:oklch(0.23 0.012 60);--muted:oklch(0.48 0.012 60);--line:oklch(0.89 0.01 80);--chip:oklch(0.945 0.01 80);--accent:oklch(0.46 0.08 195);--accent-soft:oklch(0.94 0.025 195);--on-accent:oklch(0.99 0.005 85);--warn:oklch(0.53 0.15 35);--good:oklch(0.48 0.1 155)}
+html[data-theme="dark"]{--page:oklch(0.12 0.006 60);--bg:oklch(0.17 0.008 60);--surface:oklch(0.215 0.009 60);--ink:oklch(0.95 0.008 85);--muted:oklch(0.73 0.01 70);--line:oklch(0.32 0.01 60);--chip:oklch(0.26 0.01 60);--accent:oklch(0.76 0.08 190);--accent-soft:oklch(0.3 0.04 195);--on-accent:oklch(0.17 0.008 60);--warn:oklch(0.72 0.14 35);--good:oklch(0.75 0.11 155)}
+body{margin:0;background:var(--page);font-family:'IBM Plex Sans',system-ui,sans-serif;color:var(--ink);transition:background .3s}
+button,input,select{font:inherit;color:inherit}
+input::placeholder{color:var(--muted)}
+input[type="date"]{color-scheme:light dark}
+a{color:var(--accent)}a:hover{color:var(--ink)}
+.pk-scroll::-webkit-scrollbar{display:none}
+@keyframes pkup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes pkfade{from{opacity:0}to{opacity:1}}
+@keyframes pkdraw{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:28px 16px">
+<div style="display:flex;align-items:center;gap:12px;width:390px;max-width:100%;justify-content:space-between">
+<div style="font:500 12px/1 'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:.06em;text-transform:uppercase">Pocket · Personal budgeting</div>
+<button onClick="{{ toggleDark }}" style="border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">{{ themeLabel }}</button>
+</div>
+<div style="width:390px;height:844px;flex:none;border-radius:52px;border:10px solid oklch(0.2 0.01 60);background:var(--bg);position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 60px -20px oklch(0.2 0.02 60 / .35)">
+<div style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 15px/1 'IBM Plex Sans',sans-serif"><span>9:41</span><span style="width:24px;height:11px;border:1.5px solid var(--ink);border-radius:3px;padding:1px;display:flex"><span style="flex:1;background:var(--ink);border-radius:1px"></span></span></div>
+<div style="flex:1;position:relative;overflow:hidden">
+
+<sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+<div class="pk-scroll" style="position:absolute;inset:0;overflow-y:auto;padding:6px 22px 100px;scrollbar-width:none">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div style="font:500 26px/1 Newsreader,serif;letter-spacing:-.01em">Pocket</div>
+<button onClick="{{ openMonth }}" style="border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:600;font-size:13px;cursor:pointer">{{ monthShort }} ▾</button>
+</div>
+<div style="margin-top:22px;font:400 34px/1.08 Newsreader,serif;letter-spacing:-.015em">Your money,<br><i>at a glance.</i></div>
+<div style="margin-top:6px;font-size:13px;color:var(--muted)">{{ monthLong }} · Monthly budget</div>
+<div style="margin-top:20px;border-top:1px solid var(--ink);padding-top:16px">
+<div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.1em;color:var(--muted)">LEFT TO SPEND</div>
+<div style="margin-top:8px;font:500 52px/1 Newsreader,serif;letter-spacing:-.02em;color:{{ ov.leftColor }}">{{ ov.left }}</div>
+<div style="margin-top:14px;height:8px;border-radius:4px;background:var(--chip);overflow:hidden;display:flex"><span style="height:100%;width:{{ ov.pctW }};background:{{ ov.barColor }};transition:width .5s"></span></div>
+<div style="margin-top:8px;font-size:13px;color:var(--muted)">{{ ov.spentLine }}</div>
+</div>
+<div style="margin-top:18px;display:flex;justify-content:space-between;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:14px"><span>Monthly income</span><span style="font:500 14px/1 'IBM Plex Mono',monospace;color:var(--good)">{{ ov.income }}</span></div>
+<div style="margin-top:24px;display:flex;justify-content:space-between;align-items:baseline"><span style="font:500 21px/1 Newsreader,serif">Budget categories</span><button onClick="{{ goBudgets }}" style="border:0;background:none;color:var(--accent);font-weight:600;font-size:14px;cursor:pointer;padding:0">View all</button></div>
+<div style="margin-top:6px">
+<sc-for list="{{ topCats }}" as="c" hint-placeholder-count="3">
+<button onClick="{{ c.open }}" style="width:100%;border:0;background:none;padding:12px 0;display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:left;border-bottom:1px solid var(--line)">
+<span style="display:flex;justify-content:space-between;width:100%;font-size:14px"><span style="font-weight:500">{{ c.name }}</span><span style="font:400 13px/1 'IBM Plex Mono',monospace;color:var(--muted)"><span style="color:var(--ink)">{{ c.spent }}</span> / {{ c.limit }}</span></span>
+<span style="height:5px;border-radius:3px;background:var(--chip);width:100%;display:flex;overflow:hidden"><span style="height:100%;width:{{ c.pctW }};background:{{ c.color }}"></span></span>
+</button>
+</sc-for>
+</div>
+<div style="margin-top:24px;display:flex;justify-content:space-between;align-items:baseline"><span style="font:500 21px/1 Newsreader,serif">Latest activity</span><button onClick="{{ goActivity }}" style="border:0;background:none;color:var(--accent);font-weight:600;font-size:14px;cursor:pointer;padding:0">View all</button></div>
+<sc-for list="{{ latest }}" as="t" hint-placeholder-count="3">
+<button onClick="{{ t.open }}" style="width:100%;border:0;border-bottom:1px solid var(--line);background:none;padding:13px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;text-align:left">
+<span style="display:flex;gap:12px;align-items:center;min-width:0"><span style="width:36px;height:36px;flex:none;border-radius:50%;background:var(--chip);display:flex;align-items:center;justify-content:center;font:500 13px/1 'IBM Plex Mono',monospace">{{ t.initial }}</span><span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-weight:500">{{ t.merchant }}</span><span style="font-size:12px;color:var(--muted)">{{ t.dayLabel }} · {{ t.cat }}</span></span></span>
+<span style="font:500 14px/1 'IBM Plex Mono',monospace;color:{{ t.color }}">{{ t.amount }}</span>
+</button>
+</sc-for>
+<sc-if value="{{ noLatest }}"><div style="padding:14px 0;font-size:14px;color:var(--muted)">No activity this month yet.</div></sc-if>
+<button onClick="{{ goActivity }}" style="margin-top:16px;width:100%;height:48px;border:1px solid var(--ink);background:none;border-radius:12px;font-weight:600;cursor:pointer">View transactions</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ isActivity }}">
+<div class="pk-scroll" style="position:absolute;inset:0;overflow-y:auto;padding:6px 22px 100px;scrollbar-width:none">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div style="font:500 30px/1 Newsreader,serif;letter-spacing:-.01em">Transactions</div>
+<button onClick="{{ openMonth }}" style="border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:600;font-size:13px;cursor:pointer">{{ monthShort }} ▾</button>
+</div>
+<div style="margin-top:16px;display:flex;align-items:center;gap:10px;background:var(--chip);border-radius:12px;padding:0 14px;height:46px">
+<span style="width:12px;height:12px;border:1.5px solid var(--muted);border-radius:50%;flex:none"></span>
+<input value="{{ query }}" onChange="{{ onQuery }}" placeholder="Search merchant or category" style="flex:1;border:0;background:none;outline:none;font-size:15px;min-width:0">
+<sc-if value="{{ hasQuery }}"><button onClick="{{ clearQuery }}" style="border:0;background:none;cursor:pointer;color:var(--muted);padding:4px">✕</button></sc-if>
+</div>
+<div style="margin-top:12px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--chip);border-radius:10px;padding:3px">
+<sc-for list="{{ kinds }}" as="k" hint-placeholder-count="3"><button onClick="{{ k.onClick }}" style="height:36px;border:0;border-radius:8px;background:{{ k.bg }};font-weight:600;font-size:13px;cursor:pointer;box-shadow:{{ k.shadow }}">{{ k.label }}</button></sc-for>
+</div>
+<div style="margin-top:18px;font-size:13px;color:var(--muted)">{{ txHeader }}</div>
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
+<div style="margin-top:16px;font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.08em;color:var(--muted);text-transform:uppercase">{{ g.label }}</div>
+<sc-for list="{{ g.items }}" as="t" hint-placeholder-count="1">
+<button onClick="{{ t.open }}" style="width:100%;border:0;border-bottom:1px solid var(--line);background:none;padding:13px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;text-align:left">
+<span style="display:flex;gap:12px;align-items:center;min-width:0"><span style="width:36px;height:36px;flex:none;border-radius:50%;background:var(--chip);display:flex;align-items:center;justify-content:center;font:500 13px/1 'IBM Plex Mono',monospace">{{ t.initial }}</span><span style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-weight:500">{{ t.merchant }}</span><span style="font-size:12px;color:var(--muted)">{{ t.cat }} · {{ t.account }}</span></span></span>
+<span style="font:500 14px/1 'IBM Plex Mono',monospace;color:{{ t.color }}">{{ t.amount }}</span>
+</button>
+</sc-for>
+</sc-for>
+<sc-if value="{{ noTx }}"><div style="padding:40px 0;text-align:center;color:var(--muted);font-size:14px">Nothing matches your search.</div></sc-if>
+<div style="margin-top:18px;text-align:center;font-size:12px;color:var(--muted)">All amounts in USD · Updated just now</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isBudgets }}">
+<div class="pk-scroll" style="position:absolute;inset:0;overflow-y:auto;padding:6px 22px 100px;scrollbar-width:none">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div style="font:500 30px/1 Newsreader,serif;letter-spacing:-.01em">Budgets</div>
+<button onClick="{{ openMonth }}" style="border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:600;font-size:13px;cursor:pointer">{{ monthShort }} ▾</button>
+</div>
+<div style="margin-top:14px;font-size:14px;color:var(--muted)">{{ ov.spentLine }}</div>
+<div style="margin-top:12px">
+<sc-for list="{{ allCats }}" as="c" hint-placeholder-count="8">
+<button onClick="{{ c.open }}" style="width:100%;border:0;background:none;padding:14px 0;display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:left;border-bottom:1px solid var(--line)">
+<span style="display:flex;justify-content:space-between;width:100%;font-size:15px"><span style="font-weight:500">{{ c.name }}</span><span style="font:400 13px/1 'IBM Plex Mono',monospace;color:var(--muted)"><span style="color:var(--ink)">{{ c.spent }}</span> / {{ c.limit }}</span></span>
+<span style="height:5px;border-radius:3px;background:var(--chip);width:100%;display:flex;overflow:hidden"><span style="height:100%;width:{{ c.pctW }};background:{{ c.color }}"></span></span>
+<span style="font-size:12px;color:{{ c.noteColor }}">{{ c.note }}</span>
+</button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isAccount }}">
+<div class="pk-scroll" style="position:absolute;inset:0;overflow-y:auto;padding:6px 22px 30px;scrollbar-width:none">
+<div style="font:500 30px/1 Newsreader,serif">Account</div>
+<div style="margin-top:20px;display:flex;align-items:center;gap:14px"><div style="width:54px;height:54px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;font:500 22px/1 Newsreader,serif">S</div><div style="display:flex;flex-direction:column;gap:3px"><span style="font-weight:600;font-size:17px">Sam Rivera</span><span style="font-size:13px;color:var(--muted)">sam.rivera@mail.com</span></div></div>
+<div style="margin-top:24px;font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.08em;color:var(--muted)">ACCOUNTS</div>
+<sc-for list="{{ accounts }}" as="a" hint-placeholder-count="3"><div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line)"><span>{{ a.name }}</span><span style="font:500 14px/1 'IBM Plex Mono',monospace">{{ a.bal }}</span></div></sc-for>
+<div style="margin-top:24px;font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.08em;color:var(--muted)">PREFERENCES</div>
+<button onClick="{{ toggleDark }}" style="width:100%;border:0;border-bottom:1px solid var(--line);background:none;padding:14px 0;display:flex;justify-content:space-between;align-items:center;cursor:pointer;text-align:left"><span>Dark mode</span><span style="width:46px;height:28px;border-radius:14px;background:{{ sw.bg }};padding:3px;display:flex;justify-content:{{ sw.justify }};transition:background .2s"><span style="width:22px;height:22px;border-radius:50%;background:oklch(0.99 0 0)"></span></span></button>
+<div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line)"><span>Currency</span><span style="color:var(--muted)">USD</span></div>
+<div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line)"><span>Monthly budget</span><span style="font:500 14px/1 'IBM Plex Mono',monospace">{{ totalBudget }}</span></div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isAdd }}">
+<div style="position:absolute;inset:0;display:flex;flex-direction:column">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 22px 0"><span style="font:500 24px/1 Newsreader,serif">Add expense</span><button onClick="{{ cancelAdd }}" style="border:0;background:none;color:var(--accent);font-weight:600;cursor:pointer">Cancel</button></div>
+<div class="pk-scroll" style="flex:1;overflow-y:auto;padding:0 22px 20px;scrollbar-width:none">
+<div style="margin-top:20px;font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.1em;color:var(--muted)">AMOUNT · USD</div>
+<div style="display:flex;align-items:baseline;gap:2px;margin-top:6px;border-bottom:1.5px solid {{ fm.amtBorder }};padding-bottom:6px">
+<span style="font:400 48px/1 Newsreader,serif;color:var(--muted)">$</span>
+<input value="{{ fm.amount }}" onChange="{{ onAmount }}" inputmode="decimal" placeholder="0.00" style="flex:1;min-width:0;border:0;background:none;outline:none;font:500 52px/1.1 Newsreader,serif;letter-spacing:-.02em">
+</div>
+<sc-if value="{{ fm.amtErr }}"><div style="margin-top:6px;font-size:13px;color:var(--warn)">Enter an amount greater than $0.</div></sc-if>
+<label style="margin-top:18px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)">Merchant<input value="{{ fm.merchant }}" onChange="{{ onMerchant }}" placeholder="Where did you spend?" style="height:46px;border:1px solid {{ fm.merBorder }};border-radius:10px;background:var(--surface);padding:0 14px;outline:none;font-size:15px;color:var(--ink)"></label>
+<sc-if value="{{ fm.merErr }}"><div style="margin-top:6px;font-size:13px;color:var(--warn)">Add a merchant name.</div></sc-if>
+<div style="margin-top:16px;font-size:13px;color:var(--muted)">Category</div>
+<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">
+<sc-for list="{{ fm.cats }}" as="c" hint-placeholder-count="8"><button onClick="{{ c.onClick }}" style="border:1px solid {{ c.border }};background:{{ c.bg }};color:{{ c.fg }};border-radius:999px;padding:7px 12px;font-size:13px;font-weight:500;cursor:pointer">{{ c.name }}</button></sc-for>
+</div>
+<div style="margin-top:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px">
+<label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)">Date<input type="date" value="{{ fm.date }}" onChange="{{ onDate }}" min="2026-09-01" max="2026-10-06" style="height:46px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 10px;outline:none;font-size:14px;color:var(--ink)"></label>
+<label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)">Paid from<select value="{{ fm.account }}" onChange="{{ onAccount }}" style="height:46px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 10px;outline:none;font-size:14px;color:var(--ink)"><option>Checking</option><option>Credit card</option><option>Savings</option></select></label>
+</div>
+<label style="margin-top:16px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)">Note (optional)<input value="{{ fm.note }}" onChange="{{ onNote }}" placeholder="Add a note" style="height:46px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 14px;outline:none;font-size:15px;color:var(--ink)"></label>
+<div style="margin-top:18px;border-radius:14px;background:var(--accent-soft);padding:14px 16px">
+<div style="display:flex;justify-content:space-between;font-weight:600;font-size:14px"><span>{{ fm.impactTitle }}</span><span style="font:500 14px/1 'IBM Plex Mono',monospace">{{ fm.impactLeft }}</span></div>
+<div style="margin-top:6px;font-size:13px;line-height:1.45;color:{{ fm.impactColor }}">{{ fm.impactLine }}</div>
+</div>
+</div>
+<div style="padding:12px 22px 20px;border-top:1px solid var(--line)">
+<button onClick="{{ review }}" style="width:100%;height:52px;border:0;border-radius:12px;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:16px;cursor:pointer">Review expense</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCat }}">
+<div style="position:absolute;inset:0;display:flex;flex-direction:column">
+<div class="pk-scroll" style="flex:1;overflow-y:auto;padding:6px 22px 24px;scrollbar-width:none">
+<button onClick="{{ catBack }}" style="border:0;background:none;padding:0;color:var(--accent);font-weight:600;cursor:pointer">← Back</button>
+<div style="margin-top:14px;font:500 30px/1.05 Newsreader,serif">{{ cv.title }}</div>
+<div style="margin-top:6px;font-size:13px;color:var(--muted)">{{ monthLong }} · Category overview</div>
+<div style="margin-top:20px;border-top:1px solid var(--ink);padding-top:14px">
+<div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.1em;color:var(--muted)">{{ cv.kicker }}</div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:10px">
+<div><div style="font:500 36px/1 Newsreader,serif">{{ cv.spent }}</div><div style="font-size:12px;color:var(--muted);margin-top:4px">of {{ cv.limit }} budget</div></div>
+<div><div style="font:500 36px/1 Newsreader,serif;color:{{ cv.remColor }}">{{ cv.remaining }}</div><div style="font-size:12px;color:var(--muted);margin-top:4px">{{ cv.remLabel }}</div></div>
+</div>
+<div style="margin-top:14px;height:8px;border-radius:4px;background:var(--chip);display:flex;overflow:hidden"><span style="height:100%;width:{{ cv.baseW }};background:{{ cv.barColor }}"></span><span style="height:100%;width:{{ cv.newW }};background:{{ cv.barColor }};opacity:.45"></span></div>
+<div style="margin-top:8px;font-size:13px;color:var(--muted)">{{ cv.pctLine }}</div>
+<div style="margin-top:4px;font-size:13px;font-weight:500;color:{{ cv.statusColor }}">{{ cv.status }}</div>
+</div>
+<sc-if value="{{ cv.isReview }}">
+<div style="margin-top:20px;border:1.5px dashed var(--accent);border-radius:14px;padding:14px 16px">
+<div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.1em;color:var(--accent)">NEW EXPENSE · REVIEW</div>
+<div style="margin-top:10px;display:flex;justify-content:space-between;gap:10px"><span style="display:flex;flex-direction:column;gap:3px"><span style="font-weight:600">{{ cv.newMerchant }}</span><span style="font-size:12px;color:var(--muted)">{{ cv.newMeta }}</span></span><span style="font:500 15px/1 'IBM Plex Mono',monospace">{{ cv.newAmount }}</span></div>
+<sc-if value="{{ cv.hasNote }}"><div style="margin-top:8px;font-size:13px;color:var(--muted)">Note: {{ cv.newNote }}</div></sc-if>
+<button onClick="{{ editDraft }}" style="margin-top:10px;border:0;background:none;padding:0;color:var(--accent);font-weight:600;font-size:13px;cursor:pointer">Edit details</button>
+</div>
+</sc-if>
+<sc-if value="{{ cv.isView }}">
+<div style="margin-top:18px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:12px 14px">
+<span style="display:flex;flex-direction:column;gap:3px"><span style="font-weight:600;font-size:14px">Monthly limit</span><span style="font-size:12px;color:var(--muted)">Adjust in $25 steps</span></span>
+<div style="display:flex;align-items:center;gap:4px"><button onClick="{{ cv.limitDown }}" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--bg);cursor:pointer">−</button><span style="min-width:64px;text-align:center;font:500 14px/1 'IBM Plex Mono',monospace">{{ cv.limit }}</span><button onClick="{{ cv.limitUp }}" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--bg);cursor:pointer">+</button></div>
+</div>
+</sc-if>
+<div style="margin-top:22px;font:500 20px/1 Newsreader,serif">{{ cv.recentTitle }}</div>
+<sc-for list="{{ cv.recent }}" as="t" hint-placeholder-count="3">
+<button onClick="{{ t.open }}" style="width:100%;border:0;border-bottom:1px solid var(--line);background:none;padding:13px 0;display:flex;justify-content:space-between;gap:10px;cursor:pointer;text-align:left"><span style="display:flex;flex-direction:column;gap:3px"><span style="font-weight:500">{{ t.merchant }}</span><span style="font-size:12px;color:var(--muted)">{{ t.short }} · {{ t.account }}</span></span><span style="font:500 14px/1 'IBM Plex Mono',monospace">{{ t.amountAbs }}</span></button>
+</sc-for>
+<sc-if value="{{ cv.noRecent }}"><div style="padding:14px 0;font-size:14px;color:var(--muted)">No expenses in this category yet.</div></sc-if>
+</div>
+<sc-if value="{{ cv.isReview }}">
+<div style="padding:12px 22px 20px;border-top:1px solid var(--line)">
+<button onClick="{{ confirmExpense }}" style="width:100%;height:52px;border:0;border-radius:12px;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:16px;cursor:pointer">Confirm expense · {{ cv.newAmount }}</button>
+<div style="margin-top:8px;text-align:center;font-size:12px;color:var(--muted)">This expense has not been saved yet.</div>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isSaved }}">
+<div style="position:absolute;inset:0;display:flex;flex-direction:column">
+<div class="pk-scroll" style="flex:1;overflow-y:auto;padding:16px 22px 24px;scrollbar-width:none">
+<div style="width:56px;height:56px;border-radius:50%;border:1.5px solid var(--accent);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:24px;animation:pkdraw .4s ease-out">✓</div>
+<div style="margin-top:16px;font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.1em;color:var(--muted)">EXPENSE SAVED</div>
+<div style="margin-top:8px;font:400 38px/1.05 Newsreader,serif"><i>All recorded.</i></div>
+<div style="margin-top:8px;font-size:14px;color:var(--muted)">Your expense is saved, and your budgets are up to date.</div>
+<div style="margin-top:22px;border-top:1px solid var(--ink);padding-top:16px">
+<div style="font:500 42px/1 Newsreader,serif">{{ sv.amount }}</div>
+<div style="margin-top:6px;font-weight:600">{{ sv.merchant }}</div>
+<sc-for list="{{ sv.rows }}" as="r" hint-placeholder-count="3"><div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px"><span style="color:var(--muted)">{{ r.k }}</span><span>{{ r.v }}</span></div></sc-for>
+<sc-if value="{{ sv.hasNote }}"><div style="padding:12px 0;border-bottom:1px solid var(--line);font-size:14px;color:var(--muted)">{{ sv.note }}</div></sc-if>
+</div>
+<div style="margin-top:16px;border-radius:14px;background:var(--accent-soft);padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600"><span>{{ sv.catTitle }}</span><span style="font-family:'IBM Plex Mono',monospace;color:{{ sv.catColor }}">{{ sv.catLeft }}</span></div>
+<div style="font-size:13px;color:var(--muted)">{{ sv.catLine }}</div>
+<div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600;padding-top:8px;border-top:1px solid var(--line)"><span>Total monthly remaining</span><span style="font-family:'IBM Plex Mono',monospace">{{ sv.totalLeft }}</span></div>
+</div>
+<button onClick="{{ addAnother }}" style="margin-top:16px;border:0;background:none;padding:0;color:var(--accent);font-weight:600;cursor:pointer">+ Add another expense</button>
+<div style="margin-top:16px;font:400 12px/1.4 'IBM Plex Mono',monospace;color:var(--muted)">Saved today at 9:41 AM · Reference {{ sv.ref }}</div>
+</div>
+<div style="padding:12px 22px 20px;border-top:1px solid var(--line)">
+<button onClick="{{ goOverview }}" style="width:100%;height:52px;border:0;border-radius:12px;background:var(--ink);color:var(--bg);font-weight:600;font-size:16px;cursor:pointer">Back to overview</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showFab }}" hint-placeholder-val="{{ true }}">
+<button onClick="{{ startAdd }}" style="position:absolute;right:20px;bottom:18px;height:52px;border:0;border-radius:999px;background:var(--accent);color:var(--on-accent);padding:0 20px;font-weight:600;font-size:15px;cursor:pointer;box-shadow:0 10px 24px -8px oklch(0.3 0.05 195 / .5);z-index:5">+ Add expense</button>
+</sc-if>
+</div>
+
+<sc-if value="{{ showTabs }}" hint-placeholder-val="{{ true }}">
+<div style="height:78px;flex:none;border-top:1px solid var(--line);background:var(--bg);display:flex;padding:10px 8px 22px">
+<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+<button onClick="{{ t.onClick }}" style="flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:{{ t.color }};font-weight:{{ t.weight }};font-size:12px">
+<span style="width:6px;height:6px;border-radius:50%;background:{{ t.dot }}"></span>{{ t.label }}
+</button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ sheetOpen }}">
+<div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:oklch(0.15 0.01 60 / .45);z-index:20;animation:pkfade .2s"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;z-index:21;background:var(--bg);border-radius:24px 24px 0 0;padding:10px 22px 28px;animation:pkup .25s ease-out">
+<div style="width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 14px"></div>
+<sc-if value="{{ sheetMonth }}">
+<div style="font:500 22px/1 Newsreader,serif">Choose month</div>
+<div style="margin-top:10px">
+<sc-for list="{{ months }}" as="mo" hint-placeholder-count="2"><button onClick="{{ mo.onClick }}" style="width:100%;border:0;border-bottom:1px solid var(--line);background:none;padding:15px 0;display:flex;justify-content:space-between;cursor:pointer;text-align:left"><span style="font-weight:{{ mo.weight }}">{{ mo.label }}</span><span style="color:var(--accent)">{{ mo.mark }}</span></button></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ sheetTx }}">
+<div style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.1em;color:var(--muted)">{{ txd.kind }}</div>
+<div style="margin-top:8px;font:500 40px/1 Newsreader,serif;color:{{ txd.color }}">{{ txd.amount }}</div>
+<div style="margin-top:6px;font-weight:600;font-size:17px">{{ txd.merchant }}</div>
+<div style="margin-top:12px">
+<sc-for list="{{ txd.rows }}" as="r" hint-placeholder-count="3"><div style="display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px"><span style="color:var(--muted)">{{ r.k }}</span><span>{{ r.v }}</span></div></sc-for>
+</div>
+<sc-if value="{{ txd.confirming }}">
+<div style="margin-top:16px;font-size:14px">Delete this transaction? Your budgets will update.</div>
+<div style="display:flex;gap:10px;margin-top:10px"><button onClick="{{ txd.cancelDel }}" style="flex:1;height:48px;border:1px solid var(--line);background:var(--surface);border-radius:12px;font-weight:600;cursor:pointer">Keep</button><button onClick="{{ txd.doDel }}" style="flex:1;height:48px;border:0;background:var(--warn);color:oklch(0.99 0 0);border-radius:12px;font-weight:600;cursor:pointer">Delete</button></div>
+</sc-if>
+<sc-if value="{{ txd.notConfirming }}">
+<button onClick="{{ txd.askDel }}" style="margin-top:16px;width:100%;height:48px;border:1px solid var(--line);background:var(--surface);color:var(--warn);border-radius:12px;font-weight:600;cursor:pointer">Delete transaction</button>
+</sc-if>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ hasToast }}">
+<div style="position:absolute;left:22px;right:22px;top:54px;z-index:30;background:var(--ink);color:var(--bg);border-radius:12px;padding:12px 16px;font-weight:500;font-size:14px;animation:pkfade .2s;text-align:center">{{ toast }}</div>
+</sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  CATS = [['Groceries',450],['Dining out',200],['Utilities',250],['Transportation',150],['Shopping',300],['Health',150],['Entertainment',200],['Other',500]];
+  seed(){ const t=(id,merchant,cat,amount,date,account='Checking',note='')=>({id,merchant,cat,amount,date,account,note}); return [
+    t('t1','Oak Coffee','Dining out',-4.80,'2026-10-06'),
+    t('t2','Metro Transit','Transportation',-12.00,'2026-10-05'),
+    t('t3','Noodle House','Dining out',-38.20,'2026-10-05','Credit card'),
+    t('t4','Green Market','Groceries',-58.30,'2026-10-04'),
+    t('t5','Cinema Paradiso','Entertainment',-32.00,'2026-10-04','Credit card'),
+    t('t6','Live at the Grove','Entertainment',-62.01,'2026-10-04','Credit card'),
+    t('t7','Fuel Stop','Transportation',-48.00,'2026-10-03'),
+    t('t8','Corner Slice','Dining out',-27.00,'2026-10-03'),
+    t('t9','Threadline','Shopping',-129.99,'2026-10-03','Credit card'),
+    t('t10','Bistro Lune','Dining out',-66.60,'2026-10-03','Credit card','Dinner with Jo'),
+    t('t11','Paper & Bloom','Other',-150.00,'2026-10-03','Credit card','Birthday gift'),
+    t('t12','Market Grocer','Groceries',-89.20,'2026-10-02'),
+    t('t13','Wellness Pharmacy','Health',-85.00,'2026-10-02'),
+    t('t14','Oak Coffee','Dining out',-5.40,'2026-10-02'),
+    t('t15','City Electric','Utilities',-112.00,'2026-10-02'),
+    t('t16','Market Grocer','Groceries',-165.00,'2026-10-01','Checking','Monthly stock-up'),
+    t('t17','Salary','Income',3200.00,'2026-10-01'),
+    t('t18','Fiber Net','Utilities',-68.00,'2026-10-01'),
+    t('t19','Streamly','Entertainment',-15.99,'2026-10-01','Credit card'),
+    t('t20','Hardware Hub','Shopping',-115.01,'2026-10-01','Credit card'),
+    t('s1','Salary','Income',3200.00,'2026-09-01'),
+    t('s2','Market Grocer','Groceries',-289.80,'2026-09-03'),
+    t('s3','Green Market','Groceries',-120.40,'2026-09-17'),
+    t('s4','Bistro Lune','Dining out',-92.50,'2026-09-12','Credit card'),
+    t('s5','Noodle House','Dining out',-61.00,'2026-09-20','Credit card'),
+    t('s6','City Electric','Utilities',-108.30,'2026-09-02'),
+    t('s7','Fiber Net','Utilities',-68.00,'2026-09-01'),
+    t('s8','Metro Transit','Transportation',-96.00,'2026-09-05'),
+    t('s9','Threadline','Shopping',-220.00,'2026-09-14','Credit card'),
+    t('s10','Wellness Pharmacy','Health',-40.00,'2026-09-09'),
+    t('s11','Cinema Paradiso','Entertainment',-145.00,'2026-09-26','Credit card'),
+    t('s12','Paper & Bloom','Other',-60.00,'2026-09-22')
+  ]; }
+  blankForm(){ return {amount:'',merchant:'',cat:'Groceries',date:'2026-10-06',account:'Checking',note:'',tried:false}; }
+  state = { screen:'overview',tab:'overview',prev:'overview',month:'2026-10',tx:this.seed(),limits:Object.fromEntries(this.CATS),form:this.blankForm(),catName:null,catMode:'view',saved:null,query:'',kind:'All',sheet:null,txId:null,confirmDel:false,dark:false,toast:'',nextRef:1048 };
+  componentDidMount(){ this.applyTheme(); } componentDidUpdate(){ this.applyTheme(); } componentWillUnmount(){ clearTimeout(this.tt); }
+  applyTheme(){ document.documentElement.dataset.theme=this.state.dark?'dark':'light'; }
+  m(n){ return n.toLocaleString('en-US',{style:'currency',currency:'USD'}); }
+  m0(n){ return Number.isInteger(n)?'$'+n.toLocaleString('en-US'):this.m(n); }
+  toast(t){ clearTimeout(this.tt); this.setState({toast:t}); this.tt=setTimeout(()=>this.setState({toast:''}),2200); }
+  d(iso){ const [y,mo,da]=iso.split('-').map(Number); return new Date(y,mo-1,da); }
+  short(iso){ return this.d(iso).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+  long(iso){ return this.d(iso).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}); }
+  dayLabel(iso){ return iso==='2026-10-06'?'Today':iso==='2026-10-05'?'Yesterday':this.short(iso); }
+  monthTx(month,tx){ return (tx||this.state.tx).filter(t=>t.date.startsWith(month)); }
+  spentBy(list,cat){ return Math.round(list.filter(t=>t.cat===cat&&t.amount<0).reduce((a,t)=>a-t.amount,0)*100)/100; }
+  amt(){ const v=parseFloat(String(this.state.form.amount).replace(/[^0-9.]/g,'')); return isFinite(v)?Math.round(v*100)/100:0; }
+  renderVals(){
+    const s=this.state, m=n=>this.m(n), mt=this.monthTx(s.month);
+    const totalBudget=Object.values(s.limits).reduce((a,b)=>a+b,0);
+    const spent=Math.round(mt.filter(t=>t.amount<0).reduce((a,t)=>a-t.amount,0)*100)/100;
+    const income=mt.filter(t=>t.amount>0).reduce((a,t)=>a+t.amount,0);
+    const leftV=totalBudget-spent, pct=spent/totalBudget;
+    const monthLong=s.month==='2026-10'?'October 2026':'September 2026', monthShort=s.month==='2026-10'?'October':'September';
+    const ov={left:m(leftV),leftColor:leftV<0?'var(--warn)':'var(--ink)',pctW:Math.min(100,pct*100).toFixed(1)+'%',barColor:pct>1?'var(--warn)':'var(--accent)',
+      spentLine:`${m(spent)} of ${m(totalBudget)} spent · ${Math.round(pct*100)}%`,income:m(income)};
+    const catV=([name])=>{ const lim=s.limits[name], sp=this.spentBy(mt,name), p=sp/lim, rem=lim-sp;
+      return {name,spent:this.m0(sp),limit:this.m0(lim),pctW:Math.min(100,p*100).toFixed(1)+'%',color:p>1?'var(--warn)':p>.85?'oklch(0.7 0.13 70)':'var(--accent)',
+        note:rem>=0?`${m(rem)} left · ${Math.round(p*100)}%`:`${m(-rem)} over budget`,noteColor:rem<0?'var(--warn)':'var(--muted)',
+        open:()=>this.setState(x=>({catName:name,catMode:'view',prev:x.screen,screen:'cat'}))}; };
+    const txV=t=>({...t,initial:t.merchant[0],amount:(t.amount<0?'−':'+')+m(Math.abs(t.amount)),amountAbs:m(Math.abs(t.amount)),color:t.amount>0?'var(--good)':'var(--ink)',dayLabel:this.dayLabel(t.date),short:this.short(t.date),
+      open:()=>this.setState({sheet:'tx',txId:t.id,confirmDel:false})});
+    const sorted=[...mt].sort((a,b)=>b.date.localeCompare(a.date)||Number(b.id.slice(1))-Number(a.id.slice(1)));
+    const q=s.query.trim().toLowerCase();
+    const filtered=sorted.filter(t=>(s.kind==='All'||(s.kind==='Expenses'?t.amount<0:t.amount>0))&&(!q||t.merchant.toLowerCase().includes(q)||t.cat.toLowerCase().includes(q)||t.note.toLowerCase().includes(q)));
+    const groups=[]; filtered.forEach(t=>{ let g=groups.find(x=>x.date===t.date); if(!g){ g={date:t.date,label:t.date==='2026-10-06'?'Today · Oct 6':t.date==='2026-10-05'?'Yesterday · Oct 5':this.short(t.date),items:[]}; groups.push(g); } g.items.push(txV(t)); });
+    const fSum=Math.round(filtered.reduce((a,t)=>a+t.amount,0)*100)/100;
+    const txHeader=s.kind==='Income'?`${monthShort} income · ${m(fSum)}`:s.kind==='Expenses'||!q?`${monthShort} expenses · ${m(q?-filtered.filter(t=>t.amount<0).reduce((a,t)=>a+t.amount,0):spent)}`:`${filtered.length} results`;
+    // form
+    const f=s.form, a=this.amt(); const fMonth=f.date.slice(0,7); const fmt=this.monthTx(fMonth);
+    const catLeftNow=s.limits[f.cat]-this.spentBy(fmt,f.cat), after=catLeftNow-a;
+    const fm={...f,amtErr:f.tried&&a<=0,merErr:f.tried&&!f.merchant.trim(),amtBorder:f.tried&&a<=0?'var(--warn)':'var(--ink)',merBorder:f.tried&&!f.merchant.trim()?'var(--warn)':'var(--line)',
+      cats:this.CATS.map(([n])=>{ const on=f.cat===n; return {name:n,bg:on?'var(--ink)':'var(--surface)',fg:on?'var(--bg)':'var(--ink)',border:on?'var(--ink)':'var(--line)',onClick:()=>this.setState(x=>({form:{...x.form,cat:n}}))}; }),
+      impactTitle:`${f.cat} budget`,impactLeft:`${m(catLeftNow)} left`,
+      impactLine:a>0?(after>=0?`After this expense, you’ll have ${m(after)} remaining in this category.`:`This puts you ${m(-after)} over your ${f.cat.toLowerCase()} budget.`):'Enter an amount to see the impact on this budget.',
+      impactColor:a>0&&after<0?'var(--warn)':'var(--ink)'};
+    const setF=k=>e=>{ const v=e.target.value; this.setState(x=>({form:{...x.form,[k]:v}})); };
+    // category view
+    let cv={recent:[]};
+    if(s.catName){ const name=s.catName, review=s.catMode==='review'; const cm=review?fMonth:s.month; const ct=this.monthTx(cm);
+      const lim=s.limits[name], base=this.spentBy(ct,name), add=review?a:0, tot=base+add, rem=lim-tot, p=tot/lim;
+      const color=p>1?'var(--warn)':'var(--accent)';
+      cv={title:`${name} budget`,kicker:review?'AFTER THIS EXPENSE':'THIS MONTH',spent:m(tot),limit:this.m0(lim),remaining:m(Math.abs(rem)),remLabel:rem>=0?'remaining':'over budget',remColor:rem<0?'var(--warn)':'var(--ink)',
+        baseW:Math.min(100,base/lim*100).toFixed(1)+'%',newW:Math.max(0,Math.min(100,tot/lim*100)-Math.min(100,base/lim*100)).toFixed(1)+'%',barColor:color,
+        pctLine:`${Math.round(p*100)}% of your monthly ${name.toLowerCase()} budget`,status:rem>=0?(p>.85?'Getting close to your limit.':'You’re within your category budget.'):'You’ll be over this budget.',statusColor:rem<0?'var(--warn)':p>.85?'oklch(0.6 0.13 70)':'var(--good)',
+        isReview:review,isView:!review,newMerchant:f.merchant.trim(),newMeta:`${this.dayLabel(f.date)} · ${f.account}`,newAmount:m(a),hasNote:!!f.note.trim(),newNote:f.note.trim(),
+        recentTitle:review?`Recent ${name.toLowerCase()} expenses`:'Expenses this month',
+        recent:ct.filter(t=>t.cat===name).sort((x,y)=>y.date.localeCompare(x.date)).map(txV),
+        limitUp:()=>this.setState(x=>({limits:{...x.limits,[name]:x.limits[name]+25}})),limitDown:()=>this.setState(x=>({limits:{...x.limits,[name]:Math.max(25,x.limits[name]-25)}}))};
+      cv.noRecent=cv.recent.length===0;
+    }
+    let sv={rows:[]}; if(s.saved){ const t=s.saved; const st=this.monthTx(t.date.slice(0,7)); const lim=s.limits[t.cat], sp=this.spentBy(st,t.cat); const tb=totalBudget-Math.round(st.filter(x=>x.amount<0).reduce((q,x)=>q-x.amount,0)*100)/100;
+      sv={amount:m(-t.amount),merchant:t.merchant,ref:t.ref,hasNote:!!t.note,note:t.note,rows:[{k:'Category',v:t.cat},{k:'Date',v:this.long(t.date)},{k:'Paid from',v:t.account}],
+        catTitle:`${t.cat} remaining`,catLeft:m(lim-sp),catColor:lim-sp<0?'var(--warn)':'var(--ink)',catLine:`${m(sp)} of ${m(lim)} spent`,totalLeft:m(tb)}; }
+    const tx=s.tx.find(t=>t.id===s.txId); let txd={rows:[]};
+    if(tx) txd={kind:tx.amount>0?'INCOME':'EXPENSE',amount:(tx.amount<0?'−':'+')+m(Math.abs(tx.amount)),color:tx.amount>0?'var(--good)':'var(--ink)',merchant:tx.merchant,
+      rows:[{k:'Category',v:tx.cat},{k:'Date',v:this.long(tx.date)},{k:'Account',v:tx.account},...(tx.note?[{k:'Note',v:tx.note}]:[])],confirming:s.confirmDel,notConfirming:!s.confirmDel,
+      askDel:()=>this.setState({confirmDel:true}),cancelDel:()=>this.setState({confirmDel:false}),doDel:()=>{ this.setState(x=>({tx:x.tx.filter(t=>t.id!==tx.id),sheet:null,txId:null,confirmDel:false})); this.toast('Transaction deleted'); }};
+    const scr=s.screen; const go=t=>this.setState({tab:t,screen:t,sheet:null});
+    const allTx=s.tx; const bal=acc=>allTx.filter(t=>t.account===acc).reduce((q,t)=>q+t.amount,0);
+    return {
+      themeLabel:s.dark?'Light mode':'Dark mode',toggleDark:()=>this.setState(x=>({dark:!x.dark})),sw:{bg:s.dark?'var(--accent)':'var(--line)',justify:s.dark?'flex-end':'flex-start'},
+      isOverview:scr==='overview',isActivity:scr==='activity',isBudgets:scr==='budgets',isAccount:scr==='account',isAdd:scr==='add',isCat:scr==='cat',isSaved:scr==='saved',
+      showTabs:['overview','activity','budgets','account'].includes(scr),showFab:['overview','activity','budgets'].includes(scr),
+      tabs:[['overview','Overview'],['activity','Activity'],['budgets','Budgets'],['account','Account']].map(([id,l])=>{ const on=s.tab===id; return {label:l,color:on?'var(--ink)':'var(--muted)',weight:on?600:500,dot:on?'var(--accent)':'transparent',onClick:()=>go(id)}; }),
+      goBudgets:()=>go('budgets'),goActivity:()=>go('activity'),goOverview:()=>this.setState({screen:'overview',tab:'overview',saved:null,month:'2026-10'}),
+      monthLong,monthShort,openMonth:()=>this.setState({sheet:'month'}),
+      months:[['2026-10','October 2026'],['2026-09','September 2026']].map(([id,l])=>({label:l,weight:s.month===id?600:400,mark:s.month===id?'✓':'',onClick:()=>this.setState({month:id,sheet:null})})),
+      ov,topCats:this.CATS.slice(0,3).map(catV),allCats:this.CATS.map(catV),
+      latest:sorted.slice(0,3).map(txV),noLatest:sorted.length===0,
+      query:s.query,hasQuery:!!s.query,onQuery:e=>this.setState({query:e.target.value}),clearQuery:()=>this.setState({query:''}),
+      kinds:['All','Expenses','Income'].map(k=>({label:k,bg:s.kind===k?'var(--surface)':'transparent',shadow:s.kind===k?'0 1px 3px oklch(0.2 0.01 60 / .15)':'none',onClick:()=>this.setState({kind:k})})),
+      txHeader,groups,noTx:filtered.length===0,
+      accounts:[{name:'Checking',bal:m(4212.36+bal('Checking')-1993.09)},{name:'Credit card',bal:m(bal('Credit card'))},{name:'Savings',bal:m(8500+bal('Savings'))}],
+      totalBudget:m(totalBudget),
+      startAdd:()=>this.setState(x=>({screen:'add',prev:x.screen,form:this.blankForm()})),
+      cancelAdd:()=>this.setState(x=>({screen:x.tab,form:this.blankForm()})),
+      fm,onAmount:e=>{ let v=e.target.value.replace(/[^0-9.]/g,''); const p=v.split('.'); if(p.length>2) v=p[0]+'.'+p.slice(1).join(''); if(p[1]&&p[1].length>2) v=p[0]+'.'+p[1].slice(0,2); this.setState(x=>({form:{...x.form,amount:v}})); },
+      onMerchant:setF('merchant'),onDate:e=>{ const v=e.target.value||'2026-10-06'; this.setState(x=>({form:{...x.form,date:v}})); },onAccount:setF('account'),onNote:setF('note'),
+      review:()=>{ if(this.amt()<=0||!s.form.merchant.trim()){ this.setState(x=>({form:{...x.form,tried:true}})); return; } this.setState({screen:'cat',catName:s.form.cat,catMode:'review'}); },
+      cv,catBack:()=>this.setState(x=>({screen:x.catMode==='review'?'add':(['overview','budgets','activity'].includes(x.prev)?x.prev:x.tab)})),editDraft:()=>this.setState({screen:'add'}),
+      confirmExpense:()=>{ const ref='EXP-'+s.nextRef; const t={id:'n'+s.nextRef,merchant:s.form.merchant.trim(),cat:s.form.cat,amount:-this.amt(),date:s.form.date,account:s.form.account,note:s.form.note.trim(),ref};
+        this.setState(x=>({tx:[t,...x.tx],saved:t,screen:'saved',nextRef:x.nextRef+1,form:this.blankForm()})); },
+      sv,addAnother:()=>this.setState({screen:'add',form:this.blankForm(),saved:null,prev:'overview'}),
+      sheetOpen:!!s.sheet,sheetMonth:s.sheet==='month',sheetTx:s.sheet==='tx'&&!!tx,txd,closeSheet:()=>this.setState({sheet:null,confirmDel:false}),
+      hasToast:!!s.toast,toast:s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>
